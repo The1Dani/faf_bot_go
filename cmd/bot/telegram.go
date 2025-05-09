@@ -1,10 +1,11 @@
 package main
 
 import (
-    "log"
-    "os"
+	"log"
+	"os"
 
-    tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
+	"github.com/The1Dani/faf_bot_go/cmd/bot/commands"
+	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )
 
 func StartTelegramBot() {
@@ -33,7 +34,7 @@ func StartTelegramBot() {
 
         // Create a new MessageConfig. We don't have text yet,
         // so we leave it empty.
-        msg := tgbotapi.NewMessage(update.Message.Chat.ID, "")
+        msg := tgbotapi.NewMessage(update.Message.Chat.ID, "_")
 
         // Extract the command from the Message.
 
@@ -44,6 +45,8 @@ func StartTelegramBot() {
             msg.Text = "Hi :)"
         case "status":
             msg.Text = "I'm ok."
+        case "reg":
+            commands.Reg(update, bot)
         default:
             msg.Text = "I don't know that command"
         }
