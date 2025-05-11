@@ -14,6 +14,8 @@ func StartTelegramBot() {
         log.Panic(err)
     }
 
+    upd := commands.Update{Bot: bot}
+
     bot.Debug = true
 
     log.Printf("Authorized on account %s", bot.Self.UserName)
@@ -24,6 +26,9 @@ func StartTelegramBot() {
     updates := bot.GetUpdatesChan(u)
 
     for update := range updates {
+
+        upd.Update = update
+
         if update.Message == nil { // ignore any non-Message updates
             continue
         }
@@ -46,7 +51,11 @@ func StartTelegramBot() {
         case "status":
             msg.Text = "I'm ok."
         case "reg":
-            commands.Reg(update, bot)
+            upd.Reg()
+        case "nick":
+            upd.EchoNickName()
+        case "unreg":
+            upd.Unreg()
         default:
             msg.Text = "I don't know that command"
         }

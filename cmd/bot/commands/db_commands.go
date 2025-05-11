@@ -7,6 +7,8 @@ import (
 
 var DB *sql.DB
 
+
+
 func CreateUser(chat_id, reg_member_id int64, full_name, user_name string) bool {
 	
 
@@ -116,8 +118,59 @@ func CreateUser(chat_id, reg_member_id int64, full_name, user_name string) bool 
 			return false
 		}
 	}
+	// sql.Result.RowsAffected()
 
 	tx.Commit()
 
 	return true
+}
+
+func DeleteUser(chat_id, member_id int64) (bool, error) {
+
+	tx, err := DB.Begin()
+	defer tx.Commit()
+
+	if err != nil {
+		tx.Rollback()
+		return false, err
+	}
+
+	res, err := tx.Exec("DELETE FROM members WHERE chat_id = $1 AND member_id = $2", chat_id, member_id)
+
+	if err != nil {
+		tx.Rollback()
+		return false, err
+	}
+
+	if num , _ := res.RowsAffected(); num == 0 {
+		return false, nil
+	} else {
+		return true, nil
+	}
+}
+
+func GetNickName(member_id int64) string {
+	
+	tx, err := DB.Begin()
+
+	if err != nil {
+		log.Println("[ERROR]", err)
+	}
+
+	q := tx.QueryRow("SELECT nick_name FROM members WHERE member_id = $1", member_id)
+
+	var nick_name string
+
+	err = q.Scan(&nick_name)
+
+	if err != nil {
+		log.Println("[ERROR]", err)
+	}
+
+	tx.Commit()
+
+	log.Println("[TEST] ", nick_name)
+
+	return nick_name
+
 }

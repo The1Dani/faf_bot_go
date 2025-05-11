@@ -7,24 +7,37 @@ import (
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )
 
-func Reg(update tgbotapi.Update, bot *tgbotapi.BotAPI) {
-	
-	/*
-	TODO: Solve the the full_name problem!
-	*/
+type Update struct {
+	Update tgbotapi.Update
+	Bot    *tgbotapi.BotAPI
+}
 
-	msg := BlankMessage(update)
-	
-	chat_id := update.Message.Chat.ID
-	reg_member_id := update.Message.From.ID
-	
-	user_name := update.Message.From.UserName
-	full_name := update.Message.From.String()
+func (u Update) getFullName() string {
 
-	if user_name == full_name {
-		full_name = ""
+	user := u.Update.Message.From
+
+	full_name := user.FirstName
+	if user.LastName != "" {
+		full_name += " " + user.LastName
 	}
 
+	return full_name
+
+}
+
+func (u Update) Reg() {
+
+	msg := BlankMessage(u.Update)
+
+	chat_id := u.Update.Message.Chat.ID
+	reg_member_id := u.Update.Message.From.ID
+
+	user_name := u.Update.Message.From.UserName
+
+	full_name := u.getFullName()
+
+	//old
+	// full_name := Update.Message.From.String()
 	ok := CreateUser(chat_id, reg_member_id, full_name, user_name)
 
 	var user_string string
@@ -40,10 +53,53 @@ func Reg(update tgbotapi.Update, bot *tgbotapi.BotAPI) {
 		msg.Text = fmt.Sprintf("%s, dece te inregistrezi de 2 ori? 🤡", user_string)
 	}
 
-	_ , err := bot.Send(msg)
+	_, err := u.Bot.Send(msg)
 
 	if err != nil {
 		log.Printf("[ERROR] %v", err)
 	}
+
+}
+
+func (u Update) Unreg() {
+	
+	chat_id := u.Update.Message.Chat.ID
+	member_id := u.Update.Message.From.ID
+
+	ok, err := DeleteUser(chat_id, member_id)
+	
+	if err != nil {
+		log.Println("[ERROR]", err)
+	}
+
+	msg := BlankMessage(u.Update)
+
+	if ok {
+		msg.Text = fmt.Sprintf("%s a iesit cu pozor, dar statistica tine minte tot", u.getFullName())  
+	} else if err != nil {
+		msg.Text = "utilizatorul nu a fost gasit"
+	} else {
+		msg.Text = fmt.Sprint("Internal Error ", err)
+	}
+
+	u.Bot.Send(msg)
+
+}
+
+func (u Update) EchoNickName() {
+
+	member_id := u.Update.Message.From.ID
+
+	msg := BlankMessage(u.Update)
+
+	nick_name := GetNickName(member_id)
+
+	if nick_name != "" {
+		msg.Text = nick_name
+	} else {
+		msg.Text = "No nick_name found!"
+	}
+
+	u.Bot.Send(msg)
 
 }
