@@ -7,6 +7,10 @@ import (
 
 var DB *sql.DB
 
+const (
+	pidor = "currentpidor"
+	nice = "currentnice"
+)
 
 
 func CreateUser(chat_id, reg_member_id int64, full_name, user_name string) bool {
@@ -173,4 +177,17 @@ func GetNickName(member_id int64) string {
 
 	return nick_name
 
+}
+
+func TimeNotExpired(chat_id int64, mode string) (bool, user) {
+
+	return false, user{}
+}
+
+func CarmicDicesEnabled(chat_id int64) bool {
+	return false
+}
+
+func UpdateStats(chat_id, pidor_id int64, pidor string) int64 {
+	return 0
 }

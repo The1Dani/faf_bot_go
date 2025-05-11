@@ -58,6 +58,9 @@ func StartTelegramBot() {
             upd.Unreg()
         case "pingme":
             upd.PingMe()
+        case "sticker":
+            upd.SendSticker()
+
         default:
             msg.Text = "I don't know that command"
         }

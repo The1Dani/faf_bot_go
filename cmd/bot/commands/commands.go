@@ -3,13 +3,23 @@ package commands
 import (
 	"fmt"
 	"log"
+	"time"
 
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
+	"github.com/The1Dani/faf_bot_go/cmd/bot/messages"
 )
 
 type Update struct {
 	Update tgbotapi.Update
 	Bot    *tgbotapi.BotAPI
+}
+
+type user struct {
+	full_name string
+	nick_name string
+	member_id int64
+	//coefficient int64
+	//pidor_coefficient int64
 }
 
 func (u Update) getFullName() string {
@@ -25,11 +35,25 @@ func (u Update) getFullName() string {
 
 }
 
+
 func (u Update) pingText() string {
 
 	ping_text := fmt.Sprintf("[@%s](tg://user?id=%d)", tgbotapi.EscapeText(tgbotapi.ModeMarkdownV2, u.Update.Message.From.String()) , u.Update.Message.From.ID)
 
 	// ping_text = tgbotapi.EscapeText(tgbotapi.ModeMarkdownV2, ping_text)
+
+	return ping_text
+}
+
+func (u user) pingText() string {
+
+	user_string := u.nick_name;
+
+	if user_string == "" {
+		user_string = u.full_name
+	}
+
+	ping_text := fmt.Sprintf("[@%s](tg://user?id=%d)", tgbotapi.EscapeText(tgbotapi.ModeMarkdownV2, user_string) , u.member_id)
 
 	return ping_text
 }
@@ -105,6 +129,74 @@ func (u Update) Unreg() {
 
 }
 
+func (u Update) Pidor() {
+
+	chat_id := u.Update.Message.Chat.ID
+
+	msg := BlankMessage(u.Update)
+	msg.ParseMode = tgbotapi.ModeMarkdownV2
+
+	congrats := BlankMessage(u.Update)
+	sticker := NewStickerURL(u.Update, messages.BILLY_TEAR_OFF_VEST)
+
+
+	ok, curr_user := TimeNotExpired(chat_id, pidor) // TODO
+
+	if ok {
+		msg.Text = fmt.Sprintf("Pidorul zilei este deja selectet, este %s (%s)", curr_user.full_name, curr_user.pingText())	
+
+	} else {
+		
+		var pidor_user user 
+		var ok bool
+
+		if CarmicDicesEnabled(chat_id) {
+			ok, pidor_user = getRandomUserCarmic(chat_id, pidor) // TODO
+		} else {
+			ok, pidor_user = getRandomUser(chat_id, pidor) // TODO
+		}
+
+		if !ok {
+			msg.Text = "Imposibil de selectat, lista de candidati e goala"
+			u.Bot.Send(msg)
+			return
+		}
+
+		pidor_count := UpdateStats(chat_id, pidor_user.member_id, pidor) //TODO
+
+		bdy := tgbotapi.EscapeText(tgbotapi.ModeMarkdownV2, fmt.Sprintf("Pidorul zilei - %s ", pidor_user.full_name))
+
+		msg.Text = fmt.Sprintf("%s %s", bdy, pidor_user.pingText())
+
+		for _, txt := range messages.PIDOR_MESSAGES {
+			pMsg := BlankMessage(u.Update)
+			pMsg.Text = txt
+			u.Bot.Send(pMsg)
+			time.Sleep(1 * time.Second)
+		}
+
+		switch pidor_count {
+			case 1:
+				congrats.Text = messages.PIDOR_1_TIME
+			case 10:
+				congrats.Text = messages.PIDOR_10_TIME
+			case 50:
+				congrats.Text = messages.PIDOR_50_TIME
+			case 100:
+				congrats.Text = messages.PIDOR_100_TIME
+		}
+	}
+
+	u.Bot.Send(msg)
+
+	if congrats.Text != "" {
+		u.Bot.Send(congrats)
+		u.Bot.Send(sticker)
+	}
+
+}
+
+
 func (u Update) EchoNickName() {
 
 	member_id := u.Update.Message.From.ID
@@ -138,4 +230,24 @@ func (u Update) PingMe() {
 
 	u.Bot.Send(msg)
 
+}
+
+func (u Update) SendSticker() {
+
+	chat_id := u.Update.Message.Chat.ID
+
+	stF := tgbotapi.FileURL(messages.BILLY_TEAR_OFF_VEST)
+
+	st := tgbotapi.NewSticker(chat_id, stF)
+
+	u.Bot.Send(st)
+
+}
+
+func getRandomUserCarmic(chat_id int64, pidor string) (bool, user) {
+	return false, user{}
+}
+
+func getRandomUser(chat_id int64, pidor string) (bool, user) {
+	return false, user{}
 }
