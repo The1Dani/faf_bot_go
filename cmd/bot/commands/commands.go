@@ -25,9 +25,28 @@ func (u Update) getFullName() string {
 
 }
 
-func (u Update) Reg() {
+func (u Update) pingText() string {
+
+	ping_text := fmt.Sprintf("[@%s](tg://user?id=%d)", tgbotapi.EscapeText(tgbotapi.ModeMarkdownV2, u.Update.Message.From.String()) , u.Update.Message.From.ID)
+
+	// ping_text = tgbotapi.EscapeText(tgbotapi.ModeMarkdownV2, ping_text)
+
+	return ping_text
+}
+
+func (u Update) pingMessage(text string) tgbotapi.MessageConfig {
 
 	msg := BlankMessage(u.Update)
+	msg.ParseMode = tgbotapi.ModeMarkdownV2
+
+	msg.Text = fmt.Sprintf("%s%s", u.pingText(), tgbotapi.EscapeText(tgbotapi.ModeMarkdownV2 ,text))
+
+	return msg
+}
+
+func (u Update) Reg() {
+
+	var msg tgbotapi.MessageConfig
 
 	chat_id := u.Update.Message.Chat.ID
 	reg_member_id := u.Update.Message.From.ID
@@ -40,17 +59,17 @@ func (u Update) Reg() {
 	// full_name := Update.Message.From.String()
 	ok := CreateUser(chat_id, reg_member_id, full_name, user_name)
 
-	var user_string string
-	if full_name == "" {
-		user_string = user_name
-	} else {
-		user_string = full_name
-	}
+	// var user_string string
+	// if full_name == "" {
+	// 	user_string = user_name
+	// } else {
+	// 	user_string = full_name
+	// }
 
 	if ok {
-		msg.Text = fmt.Sprintf("%s, te-ai inregistrat cu succes", user_string)
+		msg = u.pingMessage(", te-ai inregistrat cu succes")
 	} else {
-		msg.Text = fmt.Sprintf("%s, dece te inregistrezi de 2 ori? 🤡", user_string)
+		msg= u.pingMessage(", dece te inregistrezi de 2 ori? 🤡")
 	}
 
 	_, err := u.Bot.Send(msg)
@@ -75,7 +94,7 @@ func (u Update) Unreg() {
 	msg := BlankMessage(u.Update)
 
 	if ok {
-		msg.Text = fmt.Sprintf("%s a iesit cu pozor, dar statistica tine minte tot", u.getFullName())  
+		msg = u.pingMessage(" a iesit cu pozor, dar statistica tine minte tot")  
 	} else if err != nil {
 		msg.Text = "utilizatorul nu a fost gasit"
 	} else {
@@ -99,6 +118,23 @@ func (u Update) EchoNickName() {
 	} else {
 		msg.Text = "No nick_name found!"
 	}
+
+	u.Bot.Send(msg)
+
+}
+
+func (u Update) PingMe() {
+
+	msg := BlankMessage(u.Update)
+	msg.ParseMode = tgbotapi.ModeMarkdownV2
+
+	ping_text := u.pingText()
+
+	ping_text = fmt.Sprintf("I am pinging you, %s", ping_text)
+
+	msg.Text = ping_text
+
+	log.Println("[DEBUG] ", ping_text)
 
 	u.Bot.Send(msg)
 

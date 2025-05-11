@@ -56,6 +56,8 @@ func StartTelegramBot() {
             upd.EchoNickName()
         case "unreg":
             upd.Unreg()
+        case "pingme":
+            upd.PingMe()
         default:
             msg.Text = "I don't know that command"
         }
