@@ -3,10 +3,13 @@ package commands
 import (
 	"fmt"
 	"log"
+	"math/rand"
+	"slices"
 	"time"
 
-	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 	"github.com/The1Dani/faf_bot_go/cmd/bot/messages"
+	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
+	"github.com/jmcvetta/randutil"
 )
 
 type Update struct {
@@ -18,8 +21,8 @@ type user struct {
 	full_name string
 	nick_name string
 	member_id int64
-	//coefficient int64
-	//pidor_coefficient int64
+	coefficient int32
+	pidor_coefficient int32
 }
 
 func (u Update) getFullName() string {
@@ -140,7 +143,7 @@ func (u Update) Pidor() {
 	sticker := NewStickerURL(u.Update, messages.BILLY_TEAR_OFF_VEST)
 
 
-	ok, curr_user := TimeNotExpired(chat_id, pidor) // TODO
+	ok, curr_user := TimeNotExpired(chat_id, pidor) // TEST
 
 	if ok {
 		msg.Text = fmt.Sprintf("Pidorul zilei este deja selectet, este %s (%s)", curr_user.full_name, curr_user.pingText())	
@@ -150,10 +153,10 @@ func (u Update) Pidor() {
 		var pidor_user user 
 		var ok bool
 
-		if CarmicDicesEnabled(chat_id) {
-			ok, pidor_user = getRandomUserCarmic(chat_id, pidor) // TODO
+		if CarmicDicesEnabled(chat_id) { // TEST
+			ok, pidor_user = getRandomUserCarmic(chat_id, curr_user, pidor) // TEST
 		} else {
-			ok, pidor_user = getRandomUser(chat_id, pidor) // TODO
+			ok, pidor_user = getRandomUser(chat_id, curr_user) // TEST
 		}
 
 		if !ok {
@@ -162,7 +165,7 @@ func (u Update) Pidor() {
 			return
 		}
 
-		pidor_count := UpdateStats(chat_id, pidor_user.member_id, pidor) //TODO
+		pidor_count := UpdateStats(chat_id, pidor_user.member_id, pidor) //TEST
 
 		bdy := tgbotapi.EscapeText(tgbotapi.ModeMarkdownV2, fmt.Sprintf("Pidorul zilei - %s ", pidor_user.full_name))
 
@@ -200,10 +203,11 @@ func (u Update) Pidor() {
 func (u Update) EchoNickName() {
 
 	member_id := u.Update.Message.From.ID
-
+	chat_id := u.Update.Message.Chat.ID
+	
 	msg := BlankMessage(u.Update)
 
-	nick_name := GetNickName(member_id)
+	nick_name := GetUser(member_id, chat_id).nick_name
 
 	if nick_name != "" {
 		msg.Text = nick_name
@@ -244,10 +248,72 @@ func (u Update) SendSticker() {
 
 }
 
-func getRandomUserCarmic(chat_id int64, pidor string) (bool, user) {
-	return false, user{}
+func getRandomUserCarmic(chat_id int64, immune user, mode string) (bool, user) {
+	
+	var members []user
+	
+	members = GetAllMembers(members, chat_id)
+	
+	if len(members) <= 1 {
+		return false, user{}
+	}
+	
+	members = slices.DeleteFunc(members, func(u user) bool {
+		if u.member_id == immune.member_id {
+			return true
+		} else {
+			return false
+		}
+	})
+	
+	var choices []randutil.Choice
+	
+	for _, m := range members {
+		c := randutil.Choice{}
+		switch mode {
+			case pidor:
+			c.Weight = int(m.pidor_coefficient)
+			c.Item = m
+			
+			case nice:
+			c.Weight = int(m.coefficient)
+			c.Item = m
+			
+			default:
+			return false, user{}
+		}
+		choices = append(choices, c)
+	}
+	
+	r, err := randutil.WeightedChoice(choices)
+	
+	if err != nil {
+		log.Println("[ERROR]", err)
+		return false, user{}
+	}
+	
+	return true, r.Item.(user)
 }
 
-func getRandomUser(chat_id int64, pidor string) (bool, user) {
-	return false, user{}
+func getRandomUser(chat_id int64, immune user) (bool, user) {
+	
+	var members []user
+	
+	members = GetAllMembers(members, chat_id)
+	
+	if len(members) <= 1 {
+		return false, user{}
+	}
+	
+	members = slices.DeleteFunc(members, func(u user) bool {
+		if u.member_id == immune.member_id {
+			return true
+		} else {
+			return false
+		}
+	})
+	
+	rand_member := members[rand.Intn(len(members))]
+	
+	return true, rand_member
 }

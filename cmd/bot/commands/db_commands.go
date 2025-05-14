@@ -3,6 +3,8 @@ package commands
 import (
 	"database/sql"
 	"log"
+	"time"
+	"github.com/The1Dani/faf_bot_go/cmd/bot/messages"
 )
 
 var DB *sql.DB
@@ -10,8 +12,52 @@ var DB *sql.DB
 const (
 	pidor = "currentpidor"
 	nice = "currentnice"
+	pidor_stats = "pidorstats"
+	nice_stats = "stats"
 )
 
+func GetUser(member_id, chat_id int64) user {
+	
+	var u user
+	
+	row := DB.QueryRow(`SELECT full_name, nick_name FROM members WHERE member_id = $1 AND chat_id = $2`, member_id, chat_id)
+	err := row.Scan(&u.full_name, &u.nick_name)
+	u.member_id = member_id
+	
+	if err != nil {
+		log.Println("[ERROR] ", err)
+	}
+	
+	return u
+}
+
+func GetAllMembers(users []user, chat_id int64) []user {
+
+	rows, err := DB.Query(`
+		SELECT full_name, 
+		       nick_name, 
+		       member_id, 
+			   coefficient, 
+			   pidor_coefficient 
+		FROM members WHERE chat_id = $2`, chat_id)
+	
+	if err != nil {
+		log.Println("[ERROR] ", err)
+	}
+	defer rows.Close()
+	
+	for rows.Next() {
+		u := user{}
+		err = rows.Scan(&u.full_name, &u.nick_name, &u.member_id, &u.coefficient, &u.pidor_coefficient)
+		if err != nil {
+			log.Println("[ERROR] ", err)
+		}
+		users = append(users, u)
+	}
+	
+	return users
+	
+}
 
 func CreateUser(chat_id, reg_member_id int64, full_name, user_name string) bool {
 	
@@ -153,41 +199,69 @@ func DeleteUser(chat_id, member_id int64) (bool, error) {
 	}
 }
 
-func GetNickName(member_id int64) string {
-	
-	tx, err := DB.Begin()
-
-	if err != nil {
-		log.Println("[ERROR]", err)
-	}
-
-	q := tx.QueryRow("SELECT nick_name FROM members WHERE member_id = $1", member_id)
-
-	var nick_name string
-
-	err = q.Scan(&nick_name)
-
-	if err != nil {
-		log.Println("[ERROR]", err)
-	}
-
-	tx.Commit()
-
-	log.Println("[TEST] ", nick_name)
-
-	return nick_name
-
-}
 
 func TimeNotExpired(chat_id int64, mode string) (bool, user) {
+	/*
+		time.Now().Unix() ! This is the same as python time int
+ 	*/
 
-	return false, user{}
+	var db_timestamp int64
+	var curr_user user
+	
+	row := DB.QueryRow(`SELECT timestamp, member_id FROM $1 WHERE chat_id = $2`, mode, chat_id)
+	err := row.Scan(&db_timestamp, &curr_user.member_id)
+	
+	if err != nil {
+		log.Println("[ERROR]", err)
+	}
+	
+	curr_user = GetUser(curr_user.member_id, chat_id)
+	
+	curr_hour := int64(time.Now().Hour())
+	day_start := time.Date(time.Now().Year(), time.Now().Month(), time.Now().Day(), 0, 0, 0, 0, time.Now().Location()).Unix()
+	
+	curr_timeframe := (curr_hour / messages.EVERY_N) * messages.EVERY_N * 60 * 60
+	
+	return db_timestamp > day_start + curr_timeframe, curr_user
 }
 
 func CarmicDicesEnabled(chat_id int64) bool {
-	return false
+	
+	var enabled bool = false
+	
+	err := DB.QueryRow(`SELECT EXISTS(SELECT 1 FROM carmadicesenabled WHERE chat_id=$1)`, chat_id).Scan(&enabled)
+	
+	if err != nil {
+		log.Println("[ERROR]", err)
+	}
+	
+	return enabled
 }
 
-func UpdateStats(chat_id, pidor_id int64, pidor string) int64 {
-	return 0
+func UpdateStats(chat_id, member_id int64, mode string) int32 {
+	
+	tx, err := DB.Begin()
+	
+	if err != nil {
+		log.Println("[ERROR]", err)
+	}
+	
+	_, err = tx.Exec(`UPDATE $1 SET count = count + 1 WHERE member_id = $2 AND chat_id = $3`, mode, member_id, chat_id)
+	
+	if err != nil {
+		log.Println("[ERROR]", err)
+		tx.Rollback()
+	} else {
+		tx.Commit()
+	}
+	
+	var count int32
+	
+	err = DB.QueryRow(`SELECT count FROM $1 WHERE member_id = $2 AND chat_id = $3`, mode, member_id, chat_id).Scan(&count)
+	
+	if err != nil {
+		log.Println("[ERROR]", err)
+	}
+	
+	return count
 }

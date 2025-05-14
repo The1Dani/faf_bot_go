@@ -60,7 +60,8 @@ func StartTelegramBot() {
             upd.PingMe()
         case "sticker":
             upd.SendSticker()
-
+        case "pidor":
+        	upd.Pidor()
         default:
             msg.Text = "I don't know that command"
         }

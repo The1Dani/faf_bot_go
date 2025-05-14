@@ -3,7 +3,7 @@ package messages
 const BILLY_TEAR_OFF_VEST = "CAACAgIAAxkBAAEIcRNkKxD1kytU2onQeZaO_WDgSaUV2gACAhgAAnLcwEt56Ty4vsWYDC8E"
 const DRINK_CHAMPAGNE = "CAACAgIAAxkBAAEIdW5kLF5B8ohszTGZmCfZc4bFGFs-jgACdhIAAszdyUv8JECqGA168S8E"
 
-
+const EVERY_N = 6
 
 var PIDOR_MESSAGES = [...]string{
 	"Aflu cine e cel mai mare FAFlist",
