@@ -21,7 +21,7 @@ func StartTelegramBot() {
 
     upd := commands.Update{Bot: bot}
 
-    bot.Debug = true
+    bot.Debug = false
 
     log.Printf("Authorized on account %s", bot.Self.UserName)
 
@@ -67,6 +67,8 @@ func StartTelegramBot() {
             upd.SendSticker()
         case "pidor":
         	upd.Pidor()
+        case "run":
+        	upd.Nice()
         default:
             msg.Text = "I don't know that command"
         }

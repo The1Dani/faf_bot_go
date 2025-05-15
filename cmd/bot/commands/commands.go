@@ -143,10 +143,10 @@ func (u Update) Pidor() {
 	sticker := NewStickerURL(u.Update, messages.BILLY_TEAR_OFF_VEST)
 
 
-	ok, curr_user := TimeNotExpired(chat_id, pidor) // TEST
+	ok, curr_user, curr_opp_user := TimeNotExpired(chat_id, pidor) // TEST | Add funct for getting the opposite modes user
 
 	if ok {
-		msg.Text = fmt.Sprintf("Pidorul zilei este deja selectet, este %s (%s)", curr_user.full_name, curr_user.pingText())	
+		msg.Text = fmt.Sprintf("Pidorul zilei este deja selectet, este %s \\(%s\\)", curr_user.full_name, curr_user.pingText())	
 
 	} else {
 		
@@ -154,9 +154,9 @@ func (u Update) Pidor() {
 		var ok bool
 
 		if CarmicDicesEnabled(chat_id) { // TEST
-			ok, pidor_user = getRandomUserCarmic(chat_id, curr_user, pidor) // TEST
+			ok, pidor_user = getRandomUserCarmic(chat_id, curr_opp_user, pidor) // TEST
 		} else {
-			ok, pidor_user = getRandomUser(chat_id, curr_user) // TEST
+			ok, pidor_user = getRandomUser(chat_id, curr_opp_user) // TEST
 		}
 
 		if !ok {
@@ -165,7 +165,7 @@ func (u Update) Pidor() {
 			return
 		}
 
-		pidor_count := UpdateStats(chat_id, pidor_user.member_id, pidor) //TEST
+		pidor_count := UpdateStats(chat_id, pidor_user.member_id, pidor_stats) //TEST
 
 		bdy := tgbotapi.EscapeText(tgbotapi.ModeMarkdownV2, fmt.Sprintf("Pidorul zilei - %s ", pidor_user.full_name))
 
@@ -177,6 +177,8 @@ func (u Update) Pidor() {
 			u.Bot.Send(pMsg)
 			time.Sleep(1 * time.Second)
 		}
+		
+		UpdateCurrent(chat_id, pidor_user.member_id, pidor)
 
 		switch pidor_count {
 			case 1:
@@ -187,6 +189,74 @@ func (u Update) Pidor() {
 				congrats.Text = messages.PIDOR_50_TIME
 			case 100:
 				congrats.Text = messages.PIDOR_100_TIME
+		}
+	}
+
+	u.Bot.Send(msg)
+
+	if congrats.Text != "" {
+		u.Bot.Send(congrats)
+		u.Bot.Send(sticker)
+	}
+
+}
+
+func (u Update) Nice() {
+
+	chat_id := u.Update.Message.Chat.ID
+
+	msg := BlankMessage(u.Update)
+	msg.ParseMode = tgbotapi.ModeMarkdownV2
+
+	congrats := BlankMessage(u.Update)
+	sticker := NewStickerURL(u.Update, messages.DRINK_CHAMPAGNE)
+
+	ok, curr_user, curr_opp_user := TimeNotExpired(chat_id, nice) // TEST
+
+	if ok {
+		msg.Text = fmt.Sprintf("Krasavciku e deja selectat, e %s \\(%s\\)", curr_user.full_name, curr_user.pingText())	
+
+	} else {
+		
+		var nice_user user 
+		var ok bool
+
+		if CarmicDicesEnabled(chat_id) { // TEST
+			ok, nice_user = getRandomUserCarmic(chat_id, curr_opp_user, nice) // TEST
+		} else {
+			ok, nice_user = getRandomUser(chat_id, curr_opp_user) // TEST
+		}
+
+		if !ok {
+			msg.Text = "Imposibil de selectat, lista de candidati e goala"
+			u.Bot.Send(msg)
+			return
+		}
+
+		nice_count := UpdateStats(chat_id, nice_user.member_id, nice_stats) //TEST
+
+		bdy := tgbotapi.EscapeText(tgbotapi.ModeMarkdownV2, fmt.Sprintf("Pidorul zilei - %s ", nice_user.full_name))
+
+		msg.Text = fmt.Sprintf("%s %s", bdy, nice_user.pingText())
+
+		for _, txt := range messages.NICE_MESSAGES {
+			pMsg := BlankMessage(u.Update)
+			pMsg.Text = txt
+			u.Bot.Send(pMsg)
+			time.Sleep(1 * time.Second)
+		}
+		
+		UpdateCurrent(chat_id, nice_user.member_id, nice)
+
+		switch nice_count {
+			case 1:
+				congrats.Text = messages.NICE_1_TIME
+			case 10:
+				congrats.Text = messages.NICE_10_TIME
+			case 50:
+				congrats.Text = messages.NICE_50_TIME
+			case 100:
+				congrats.Text = messages.NICE_100_TIME
 		}
 	}
 
@@ -249,7 +319,7 @@ func (u Update) SendSticker() {
 
 }
 
-func getRandomUserCarmic(chat_id int64, immune user, mode string) (bool, user) {
+func getRandomUserCarmic(chat_id int64, immune user, mode current_) (bool, user) {
 	
 	var members []user
 	
