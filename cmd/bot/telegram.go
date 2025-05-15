@@ -8,7 +8,12 @@ import (
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )
 
+
+
 func StartTelegramBot() {
+	
+	log.SetFlags(log.LstdFlags | log.Lshortfile)
+	
     bot, err := tgbotapi.NewBotAPI(os.Getenv("TELEGRAM_APITOKEN"))
     if err != nil {
         log.Panic(err)

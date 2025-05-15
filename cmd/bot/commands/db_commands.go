@@ -2,8 +2,10 @@ package commands
 
 import (
 	"database/sql"
+	"fmt"
 	"log"
 	"time"
+
 	"github.com/The1Dani/faf_bot_go/cmd/bot/messages"
 )
 
@@ -16,19 +18,22 @@ const (
 	nice_stats = "stats"
 )
 
-func GetUser(member_id, chat_id int64) user {
+func GetUser(member_id, chat_id int64) (user, error) {
 	
 	var u user
 	
+	log.Printf("[DEBUG] Selecting user where member_id = %d and chat_id = %d\n", member_id, chat_id)
 	row := DB.QueryRow(`SELECT full_name, nick_name FROM members WHERE member_id = $1 AND chat_id = $2`, member_id, chat_id)
 	err := row.Scan(&u.full_name, &u.nick_name)
 	u.member_id = member_id
 	
-	if err != nil {
+	if err == sql.ErrNoRows {
+		return user{}, err
+	} else if err != nil {
 		log.Println("[ERROR] ", err)
 	}
 	
-	return u
+	return u, nil
 }
 
 func GetAllMembers(users []user, chat_id int64) []user {
@@ -39,11 +44,12 @@ func GetAllMembers(users []user, chat_id int64) []user {
 		       member_id, 
 			   coefficient, 
 			   pidor_coefficient 
-		FROM members WHERE chat_id = $2`, chat_id)
+		FROM members WHERE chat_id = $1`, chat_id)
 	
 	if err != nil {
 		log.Println("[ERROR] ", err)
 	}
+	
 	defer rows.Close()
 	
 	for rows.Next() {
@@ -208,14 +214,21 @@ func TimeNotExpired(chat_id int64, mode string) (bool, user) {
 	var db_timestamp int64
 	var curr_user user
 	
-	row := DB.QueryRow(`SELECT timestamp, member_id FROM $1 WHERE chat_id = $2`, mode, chat_id)
+	var querry_string string
+	
+	querry_string = fmt.Sprintf(`SELECT timestamp, member_id FROM %s WHERE chat_id = $1`, mode)
+	row := DB.QueryRow(querry_string, chat_id)
 	err := row.Scan(&db_timestamp, &curr_user.member_id)
 	
 	if err != nil {
 		log.Println("[ERROR]", err)
 	}
 	
-	curr_user = GetUser(curr_user.member_id, chat_id)
+	curr_user, err = GetUser(curr_user.member_id, chat_id)
+	
+	if err == sql.ErrNoRows {
+		log.Println("Pidor is not a user")
+	}
 	
 	curr_hour := int64(time.Now().Hour())
 	day_start := time.Date(time.Now().Year(), time.Now().Month(), time.Now().Day(), 0, 0, 0, 0, time.Now().Location()).Unix()
@@ -246,7 +259,8 @@ func UpdateStats(chat_id, member_id int64, mode string) int32 {
 		log.Println("[ERROR]", err)
 	}
 	
-	_, err = tx.Exec(`UPDATE $1 SET count = count + 1 WHERE member_id = $2 AND chat_id = $3`, mode, member_id, chat_id)
+	update_string := fmt.Sprintf(`UPDATE %s SET count = count + 1 WHERE member_id = $1 AND chat_id = $2`, mode)
+	_, err = tx.Exec(update_string, member_id, chat_id)
 	
 	if err != nil {
 		log.Println("[ERROR]", err)
@@ -257,7 +271,8 @@ func UpdateStats(chat_id, member_id int64, mode string) int32 {
 	
 	var count int32
 	
-	err = DB.QueryRow(`SELECT count FROM $1 WHERE member_id = $2 AND chat_id = $3`, mode, member_id, chat_id).Scan(&count)
+	query_string := fmt.Sprintf(`SELECT count FROM %s WHERE member_id = $2 AND chat_id = $3`, mode)
+	err = DB.QueryRow(query_string, member_id, chat_id).Scan(&count)
 	
 	if err != nil {
 		log.Println("[ERROR]", err)

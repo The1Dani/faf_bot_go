@@ -207,8 +207,9 @@ func (u Update) EchoNickName() {
 	
 	msg := BlankMessage(u.Update)
 
-	nick_name := GetUser(member_id, chat_id).nick_name
-
+	user, _ := GetUser(member_id, chat_id)
+	nick_name := user.nick_name
+	
 	if nick_name != "" {
 		msg.Text = nick_name
 	} else {
@@ -254,7 +255,7 @@ func getRandomUserCarmic(chat_id int64, immune user, mode string) (bool, user) {
 	
 	members = GetAllMembers(members, chat_id)
 	
-	if len(members) <= 1 {
+	if len(members) < 1 {
 		return false, user{}
 	}
 	
@@ -265,6 +266,10 @@ func getRandomUserCarmic(chat_id int64, immune user, mode string) (bool, user) {
 			return false
 		}
 	})
+	
+	if len(members) < 1 {
+		return false, user{}
+	}
 	
 	var choices []randutil.Choice
 	
@@ -301,7 +306,7 @@ func getRandomUser(chat_id int64, immune user) (bool, user) {
 	
 	members = GetAllMembers(members, chat_id)
 	
-	if len(members) <= 1 {
+	if len(members) < 1 {
 		return false, user{}
 	}
 	
@@ -312,6 +317,10 @@ func getRandomUser(chat_id int64, immune user) (bool, user) {
 			return false
 		}
 	})
+	
+	if len(members) < 1 {
+		return false, user{}
+	}
 	
 	rand_member := members[rand.Intn(len(members))]
 	
