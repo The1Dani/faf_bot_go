@@ -21,16 +21,16 @@ type Update struct {
 }
 
 type user struct {
-	full_name string
-	nick_name string
-	member_id int64
-	coefficient int32
+	full_name         string
+	nick_name         string
+	member_id         int64
+	coefficient       int32
 	pidor_coefficient int32
 }
 
 type counts struct {
-	PidorCount	int
-	NiceCount	int
+	PidorCount int
+	NiceCount  int
 }
 
 func (u Update) getFullName() string {
@@ -46,10 +46,9 @@ func (u Update) getFullName() string {
 
 }
 
-
 func (u Update) pingText() string {
 
-	ping_text := fmt.Sprintf("[@%s](tg://user?id=%d)", tgbotapi.EscapeText(tgbotapi.ModeMarkdownV2, u.Update.Message.From.String()) , u.Update.Message.From.ID)
+	ping_text := fmt.Sprintf("[@%s](tg://user?id=%d)", tgbotapi.EscapeText(tgbotapi.ModeMarkdownV2, u.Update.Message.From.String()), u.Update.Message.From.ID)
 
 	// ping_text = tgbotapi.EscapeText(tgbotapi.ModeMarkdownV2, ping_text)
 
@@ -58,13 +57,13 @@ func (u Update) pingText() string {
 
 func (u user) pingText() string {
 
-	user_string := u.nick_name;
+	user_string := u.nick_name
 
 	if user_string == "" {
 		user_string = u.full_name
 	}
 
-	ping_text := fmt.Sprintf("[@%s](tg://user?id=%d)", tgbotapi.EscapeText(tgbotapi.ModeMarkdownV2, user_string) , u.member_id)
+	ping_text := fmt.Sprintf("[@%s](tg://user?id=%d)", tgbotapi.EscapeText(tgbotapi.ModeMarkdownV2, user_string), u.member_id)
 
 	return ping_text
 }
@@ -74,7 +73,7 @@ func (u Update) pingMessage(text string) tgbotapi.MessageConfig {
 	msg := BlankMessage(u.Update)
 	msg.ParseMode = tgbotapi.ModeMarkdownV2
 
-	msg.Text = fmt.Sprintf("%s%s", u.pingText(), tgbotapi.EscapeText(tgbotapi.ModeMarkdownV2 ,text))
+	msg.Text = fmt.Sprintf("%s%s", u.pingText(), tgbotapi.EscapeText(tgbotapi.ModeMarkdownV2, text))
 
 	return msg
 }
@@ -104,7 +103,7 @@ func (u Update) Reg() {
 	if ok {
 		msg = u.pingMessage(", te-ai inregistrat cu succes")
 	} else {
-		msg= u.pingMessage(", dece te inregistrezi de 2 ori? 🤡")
+		msg = u.pingMessage(", dece te inregistrezi de 2 ori? 🤡")
 	}
 
 	_, err := u.Bot.Send(msg)
@@ -116,12 +115,12 @@ func (u Update) Reg() {
 }
 
 func (u Update) Unreg() {
-	
+
 	chat_id := u.Update.Message.Chat.ID
 	member_id := u.Update.Message.From.ID
 
 	ok, err := DeleteUser(chat_id, member_id)
-	
+
 	if err != nil {
 		log.Println("[ERROR]", err)
 	}
@@ -129,7 +128,7 @@ func (u Update) Unreg() {
 	msg := BlankMessage(u.Update)
 
 	if ok {
-		msg = u.pingMessage(" a iesit cu pozor, dar statistica tine minte tot")  
+		msg = u.pingMessage(" a iesit cu pozor, dar statistica tine minte tot")
 	} else if err != nil {
 		msg.Text = "utilizatorul nu a fost gasit"
 	} else {
@@ -150,15 +149,14 @@ func (u Update) Pidor() {
 	congrats := BlankMessage(u.Update)
 	sticker := NewStickerURL(u.Update, messages.BILLY_TEAR_OFF_VEST)
 
-
 	ok, curr_user, curr_opp_user := TimeNotExpired(chat_id, pidor) // TEST | Add funct for getting the opposite modes user
 
 	if ok {
-		msg.Text = fmt.Sprintf("Pidorul zilei este deja selectet, este %s \\(%s\\)", curr_user.full_name, curr_user.pingText())	
+		msg.Text = fmt.Sprintf("Pidorul zilei este deja selectet, este %s \\(%s\\)", curr_user.full_name, curr_user.pingText())
 
 	} else {
-		
-		var pidor_user user 
+
+		var pidor_user user
 		var ok bool
 
 		if CarmicDicesEnabled(chat_id) { // TEST
@@ -185,18 +183,18 @@ func (u Update) Pidor() {
 			u.Bot.Send(pMsg)
 			time.Sleep(1 * time.Second)
 		}
-		
+
 		UpdateCurrent(chat_id, pidor_user.member_id, pidor)
 
 		switch pidor_count {
-			case 1:
-				congrats.Text = messages.PIDOR_1_TIME
-			case 10:
-				congrats.Text = messages.PIDOR_10_TIME
-			case 50:
-				congrats.Text = messages.PIDOR_50_TIME
-			case 100:
-				congrats.Text = messages.PIDOR_100_TIME
+		case 1:
+			congrats.Text = messages.PIDOR_1_TIME
+		case 10:
+			congrats.Text = messages.PIDOR_10_TIME
+		case 50:
+			congrats.Text = messages.PIDOR_50_TIME
+		case 100:
+			congrats.Text = messages.PIDOR_100_TIME
 		}
 	}
 
@@ -222,11 +220,11 @@ func (u Update) Nice() {
 	ok, curr_user, curr_opp_user := TimeNotExpired(chat_id, nice) // TEST
 
 	if ok {
-		msg.Text = fmt.Sprintf("Krasavciku e deja selectat, e %s \\(%s\\)", curr_user.full_name, curr_user.pingText())	
+		msg.Text = fmt.Sprintf("Krasavciku e deja selectat, e %s \\(%s\\)", curr_user.full_name, curr_user.pingText())
 
 	} else {
-		
-		var nice_user user 
+
+		var nice_user user
 		var ok bool
 
 		if CarmicDicesEnabled(chat_id) { // TEST
@@ -253,18 +251,18 @@ func (u Update) Nice() {
 			u.Bot.Send(pMsg)
 			time.Sleep(1 * time.Second)
 		}
-		
+
 		UpdateCurrent(chat_id, nice_user.member_id, nice)
 
 		switch nice_count {
-			case 1:
-				congrats.Text = messages.NICE_1_TIME
-			case 10:
-				congrats.Text = messages.NICE_10_TIME
-			case 50:
-				congrats.Text = messages.NICE_50_TIME
-			case 100:
-				congrats.Text = messages.NICE_100_TIME
+		case 1:
+			congrats.Text = messages.NICE_1_TIME
+		case 10:
+			congrats.Text = messages.NICE_10_TIME
+		case 50:
+			congrats.Text = messages.NICE_50_TIME
+		case 100:
+			congrats.Text = messages.NICE_100_TIME
 		}
 	}
 
@@ -277,17 +275,16 @@ func (u Update) Nice() {
 
 }
 
-
 func (u Update) EchoNickName() {
 
 	member_id := u.Update.Message.From.ID
 	chat_id := u.Update.Message.Chat.ID
-	
+
 	msg := BlankMessage(u.Update)
 
 	user, _ := GetUser(member_id, chat_id)
 	nick_name := user.nick_name
-	
+
 	if nick_name != "" {
 		msg.Text = nick_name
 	} else {
@@ -328,19 +325,19 @@ func (u Update) SendSticker() {
 }
 
 func getRandomUserCarmic(chat_id int64, immune user, mode current_) (bool, user) {
-	
+
 	var members []user
-	
+
 	members, err := GetAllMembers(members, chat_id)
-	
+
 	if err != nil {
 		return false, user{}
 	}
-	
+
 	if len(members) < 1 {
 		return false, user{}
 	}
-	
+
 	members = slices.DeleteFunc(members, func(u user) bool {
 		if u.member_id == immune.member_id {
 			return true
@@ -348,54 +345,54 @@ func getRandomUserCarmic(chat_id int64, immune user, mode current_) (bool, user)
 			return false
 		}
 	})
-	
+
 	if len(members) < 1 {
 		return false, user{}
 	}
-	
+
 	var choices []randutil.Choice
-	
+
 	for _, m := range members {
 		c := randutil.Choice{}
 		switch mode {
-			case pidor:
-				c.Weight = int(m.pidor_coefficient)
-				c.Item = m
-			
-			case nice:
-				c.Weight = int(m.coefficient)
-				c.Item = m
-			
-			default:
+		case pidor:
+			c.Weight = int(m.pidor_coefficient)
+			c.Item = m
+
+		case nice:
+			c.Weight = int(m.coefficient)
+			c.Item = m
+
+		default:
 			return false, user{}
 		}
 		choices = append(choices, c)
 	}
-	
+
 	r, err := randutil.WeightedChoice(choices)
-	
+
 	if err != nil {
 		log.Println("[ERROR]", err)
 		return false, user{}
 	}
-	
+
 	return true, r.Item.(user)
 }
 
 func getRandomUser(chat_id int64, immune user) (bool, user) {
-	
+
 	var members []user
-	
+
 	members, err := GetAllMembers(members, chat_id)
-	
+
 	if err != nil {
 		return false, user{}
 	}
-	
+
 	if len(members) < 1 {
 		return false, user{}
 	}
-	
+
 	members = slices.DeleteFunc(members, func(u user) bool {
 		if u.member_id == immune.member_id {
 			return true
@@ -403,75 +400,74 @@ func getRandomUser(chat_id int64, immune user) (bool, user) {
 			return false
 		}
 	})
-	
+
 	if len(members) < 1 {
 		return false, user{}
 	}
-	
+
 	rand_member := members[rand.Intn(len(members))]
-	
+
 	return true, rand_member
 }
 
 func (u Update) Stats() {
-	
+
 	var text string
-	
+
 	msg := BlankMessage(u.Update)
 	chat_id := u.Update.Message.Chat.ID
 	results, members, err := GetStats(chat_id)
 	text_list := []string{"Rezultatele jocului krasavciku zilei:"}
 
-	
 	if err == sql.ErrNoRows || err != nil {
 		msg.Text = "Nimei nu e inregistrat, statistica e goala"
 		u.Bot.Send(msg)
 		u.Bot.Send(tgbotapi.NewMessage(chat_id, fmt.Sprint(err)))
 		return
 	}
-	
+
 	sort.Slice(members, func(i, j int) bool {
 		return results[members[i].member_id].NiceCount < results[members[j].member_id].NiceCount
 	})
-	
+
 	for _, memb := range members {
 		txt := fmt.Sprintf("%v: %v", memb.full_name, results[memb.member_id].NiceCount)
 		text_list = append(text_list, txt)
 	}
-	
+
 	// log.Printf("[DEBUG] %#v\n%#v\n%#v\n", results, members, text_list)
 	text = strings.Join(text_list, "\n")
-	
+
 	msg.Text = text
 	u.Bot.Send(msg)
 }
 
 func (u Update) PidorStats() {
-	
+
 	var text string
-	
+
 	msg := BlankMessage(u.Update)
 	chat_id := u.Update.Message.Chat.ID
 	results, members, err := GetStats(chat_id)
 	text_list := []string{"Rezultatele jocului pidoru zilei:"}
-	
+
 	if err == sql.ErrNoRows {
 		msg.Text = "Nimei nu e inregistrat, statistica e goala"
 		u.Bot.Send(msg)
 		return
 	}
-	
+
 	sort.Slice(members, func(i, j int) bool {
 		return results[members[i].member_id].PidorCount < results[members[j].member_id].PidorCount
 	})
-	
+
 	for _, memb := range members {
 		txt := fmt.Sprintf("%v: %v", memb.full_name, results[memb.member_id].PidorCount)
 		text_list = append(text_list, txt)
 	}
-	
+
 	text = strings.Join(text_list, "\n")
 	msg.Text = text
-	
+
 	u.Bot.Send(msg)
 }

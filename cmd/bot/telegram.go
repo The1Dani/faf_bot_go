@@ -8,77 +8,75 @@ import (
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )
 
-
-
 func StartTelegramBot() {
-	
+
 	log.SetFlags(log.LstdFlags | log.Lshortfile)
-	
-    bot, err := tgbotapi.NewBotAPI(os.Getenv("TELEGRAM_APITOKEN"))
-    if err != nil {
-        log.Panic(err)
-    }
 
-    upd := commands.Update{Bot: bot}
+	bot, err := tgbotapi.NewBotAPI(os.Getenv("TELEGRAM_APITOKEN"))
+	if err != nil {
+		log.Panic(err)
+	}
 
-    bot.Debug = false
+	upd := commands.Update{Bot: bot}
 
-    log.Printf("Authorized on account %s", bot.Self.UserName)
+	bot.Debug = false
 
-    u := tgbotapi.NewUpdate(0)
-    u.Timeout = 60
+	log.Printf("Authorized on account %s", bot.Self.UserName)
 
-    updates := bot.GetUpdatesChan(u)
+	u := tgbotapi.NewUpdate(0)
+	u.Timeout = 60
 
-    for update := range updates {
+	updates := bot.GetUpdatesChan(u)
 
-        upd.Update = update
+	for update := range updates {
 
-        if update.Message == nil { // ignore any non-Message updates
-            continue
-        }
+		upd.Update = update
 
-        if !update.Message.IsCommand() { // ignore any non-command Messages
-            continue
-        }
+		if update.Message == nil { // ignore any non-Message updates
+			continue
+		}
 
-        // Create a new MessageConfig. We don't have text yet,
-        // so we leave it empty.
-        msg := tgbotapi.NewMessage(update.Message.Chat.ID, "_")
+		if !update.Message.IsCommand() { // ignore any non-command Messages
+			continue
+		}
 
-        // Extract the command from the Message.
+		// Create a new MessageConfig. We don't have text yet,
+		// so we leave it empty.
+		msg := tgbotapi.NewMessage(update.Message.Chat.ID, "_")
 
-        switch update.Message.Command() {
-        case "reg":
-            upd.Reg()
-        case "nick":
-            upd.EchoNickName()
-        case "unreg":
-            upd.Unreg()
-        case "pingme":
-            upd.PingMe()
-        case "sticker":
-            upd.SendSticker()
-        case "pidor":
-        	upd.Pidor()
-        case "run":
-        	upd.Nice()
-        case "stats":
-        	upd.Stats()
-        case "pidorstats":
-        	upd.PidorStats()
-        default:
-            msg.Text = "I don't know that command"
-            bot.Send(msg)
-        }
+		// Extract the command from the Message.
+
+		switch update.Message.Command() {
+		case "reg":
+			upd.Reg()
+		case "nick":
+			upd.EchoNickName()
+		case "unreg":
+			upd.Unreg()
+		case "pingme":
+			upd.PingMe()
+		case "sticker":
+			upd.SendSticker()
+		case "pidor":
+			upd.Pidor()
+		case "run":
+			upd.Nice()
+		case "stats":
+			upd.Stats()
+		case "pidorstats":
+			upd.PidorStats()
+		default:
+			msg.Text = "I don't know that command"
+			bot.Send(msg)
+		}
 
 		// _, err := bot.Send(msg)
 
-        if err != nil {
-            log.Panic(err)
-        }
+		if err != nil {
+			log.Panic(err)
+		}
 
 		log.Println(update.Message.From.FirstName)
-		
-    }
+
+	}
 }

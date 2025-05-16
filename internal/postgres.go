@@ -1,11 +1,12 @@
 package internal
 
 import (
+	"database/sql"
 	"log"
 	"os"
-	"database/sql"
-	"github.com/tsoding/smig"
+
 	_ "github.com/lib/pq"
+	"github.com/tsoding/smig"
 )
 
 func migratePostgres(db *sql.DB) bool {

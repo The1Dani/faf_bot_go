@@ -11,11 +11,10 @@ import (
 var DB *sql.DB
 
 func main() {
-	// PostgreSQL //////////////////////////////
 
 	DB = internal.StartPostgreSQL()
 	commands.DB = DB
-	
+
 	if DB == nil {
 		log.Println("Starting without PostgreSQL.")
 	} else {
