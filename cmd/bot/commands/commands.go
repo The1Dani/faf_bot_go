@@ -1,10 +1,13 @@
 package commands
 
 import (
+	"database/sql"
 	"fmt"
 	"log"
 	"math/rand"
 	"slices"
+	"sort"
+	"strings"
 	"time"
 
 	"github.com/The1Dani/faf_bot_go/cmd/bot/messages"
@@ -23,6 +26,11 @@ type user struct {
 	member_id int64
 	coefficient int32
 	pidor_coefficient int32
+}
+
+type counts struct {
+	PidorCount	int
+	NiceCount	int
 }
 
 func (u Update) getFullName() string {
@@ -323,7 +331,11 @@ func getRandomUserCarmic(chat_id int64, immune user, mode current_) (bool, user)
 	
 	var members []user
 	
-	members = GetAllMembers(members, chat_id)
+	members, err := GetAllMembers(members, chat_id)
+	
+	if err != nil {
+		return false, user{}
+	}
 	
 	if len(members) < 1 {
 		return false, user{}
@@ -347,12 +359,12 @@ func getRandomUserCarmic(chat_id int64, immune user, mode current_) (bool, user)
 		c := randutil.Choice{}
 		switch mode {
 			case pidor:
-			c.Weight = int(m.pidor_coefficient)
-			c.Item = m
+				c.Weight = int(m.pidor_coefficient)
+				c.Item = m
 			
 			case nice:
-			c.Weight = int(m.coefficient)
-			c.Item = m
+				c.Weight = int(m.coefficient)
+				c.Item = m
 			
 			default:
 			return false, user{}
@@ -374,7 +386,11 @@ func getRandomUser(chat_id int64, immune user) (bool, user) {
 	
 	var members []user
 	
-	members = GetAllMembers(members, chat_id)
+	members, err := GetAllMembers(members, chat_id)
+	
+	if err != nil {
+		return false, user{}
+	}
 	
 	if len(members) < 1 {
 		return false, user{}
@@ -395,4 +411,67 @@ func getRandomUser(chat_id int64, immune user) (bool, user) {
 	rand_member := members[rand.Intn(len(members))]
 	
 	return true, rand_member
+}
+
+func (u Update) Stats() {
+	
+	var text string
+	
+	msg := BlankMessage(u.Update)
+	chat_id := u.Update.Message.Chat.ID
+	results, members, err := GetStats(chat_id)
+	text_list := []string{"Rezultatele jocului krasavciku zilei:"}
+
+	
+	if err == sql.ErrNoRows || err != nil {
+		msg.Text = "Nimei nu e inregistrat, statistica e goala"
+		u.Bot.Send(msg)
+		u.Bot.Send(tgbotapi.NewMessage(chat_id, fmt.Sprint(err)))
+		return
+	}
+	
+	sort.Slice(members, func(i, j int) bool {
+		return results[members[i].member_id].NiceCount < results[members[j].member_id].NiceCount
+	})
+	
+	for _, memb := range members {
+		txt := fmt.Sprintf("%v: %v", memb.full_name, results[memb.member_id].NiceCount)
+		text_list = append(text_list, txt)
+	}
+	
+	// log.Printf("[DEBUG] %#v\n%#v\n%#v\n", results, members, text_list)
+	text = strings.Join(text_list, "\n")
+	
+	msg.Text = text
+	u.Bot.Send(msg)
+}
+
+func (u Update) PidorStats() {
+	
+	var text string
+	
+	msg := BlankMessage(u.Update)
+	chat_id := u.Update.Message.Chat.ID
+	results, members, err := GetStats(chat_id)
+	text_list := []string{"Rezultatele jocului pidoru zilei:"}
+	
+	if err == sql.ErrNoRows {
+		msg.Text = "Nimei nu e inregistrat, statistica e goala"
+		u.Bot.Send(msg)
+		return
+	}
+	
+	sort.Slice(members, func(i, j int) bool {
+		return results[members[i].member_id].PidorCount < results[members[j].member_id].PidorCount
+	})
+	
+	for _, memb := range members {
+		txt := fmt.Sprintf("%v: %v", memb.full_name, results[memb.member_id].PidorCount)
+		text_list = append(text_list, txt)
+	}
+	
+	text = strings.Join(text_list, "\n")
+	msg.Text = text
+	
+	u.Bot.Send(msg)
 }

@@ -39,7 +39,7 @@ func GetUser(member_id, chat_id int64) (user, error) {
 	return u, nil
 }
 
-func GetAllMembers(users []user, chat_id int64) []user {
+func GetAllMembers(users []user, chat_id int64) ([]user, error) {
 
 	rows, err := DB.Query(`
 		SELECT full_name, 
@@ -51,6 +51,7 @@ func GetAllMembers(users []user, chat_id int64) []user {
 	
 	if err != nil {
 		log.Println("[ERROR] ", err)
+		return users, err
 	}
 	
 	defer rows.Close()
@@ -60,11 +61,12 @@ func GetAllMembers(users []user, chat_id int64) []user {
 		err = rows.Scan(&u.full_name, &u.nick_name, &u.member_id, &u.coefficient, &u.pidor_coefficient)
 		if err != nil {
 			log.Println("[ERROR] ", err)
+			
 		}
 		users = append(users, u)
 	}
 	
-	return users
+	return users, nil
 	
 }
 
@@ -327,4 +329,58 @@ func UpdateCurrent(chat_id, member_id int64, mode current_) {
 		tx.Commit()
 	}
 
+}
+
+func GetStats(chat_id int64) (map[int64]counts, []user, error) {
+	
+	var members []user
+	var results = make(map[int64]counts)
+	
+	members, err := GetAllMembers(members, chat_id)
+	
+	if err != nil {
+		return nil, nil, err
+	}
+
+	qry := fmt.Sprintf(`
+		WITH chat_members AS (
+		  SELECT * FROM members WHERE chat_id = $1
+		)
+		SELECT 
+		  ps.count AS pidor, 
+		  s.count AS nice, 
+		  m.member_id
+		FROM chat_members m
+		LEFT JOIN pidorstats ps 
+		  ON m.member_id = ps.member_id AND ps.chat_id = m.chat_id
+		LEFT JOIN stats s 
+		  ON m.member_id = s.member_id AND s.chat_id = m.chat_id;
+  `)
+
+	rows, err := DB.Query(qry, chat_id)
+	
+	if err != nil {
+		log.Println("[ERROR]", err)
+		return nil, nil, err
+	}
+	
+	defer rows.Close()
+	
+	for rows.Next() {
+		var member_id int64
+	 	var pidor_count, nice_count int
+			
+		err = rows.Scan(&pidor_count, &nice_count, &member_id)
+		
+		if err != nil {
+			log.Println("[ERROR] ", err)
+		}
+		
+		results[member_id] = counts{
+			PidorCount: pidor_count,
+			NiceCount: nice_count,
+		}
+	}
+	
+	return results, members, nil
 }

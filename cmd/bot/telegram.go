@@ -49,12 +49,6 @@ func StartTelegramBot() {
         // Extract the command from the Message.
 
         switch update.Message.Command() {
-        case "help":
-            msg.Text = "I understand /sayhi and /status."
-        case "sayhi":
-            msg.Text = "Hi :)"
-        case "status":
-            msg.Text = "I'm ok."
         case "reg":
             upd.Reg()
         case "nick":
@@ -69,11 +63,16 @@ func StartTelegramBot() {
         	upd.Pidor()
         case "run":
         	upd.Nice()
+        case "stats":
+        	upd.Stats()
+        case "pidorstats":
+        	upd.PidorStats()
         default:
             msg.Text = "I don't know that command"
+            bot.Send(msg)
         }
 
-		_, err := bot.Send(msg)
+		// _, err := bot.Send(msg)
 
         if err != nil {
             log.Panic(err)
