@@ -65,6 +65,8 @@ func StartTelegramBot() {
 			upd.Stats()
 		case "pidorstats":
 			upd.PidorStats()
+		case "percentstats":
+			upd.PercentStats()
 		default:
 			msg.Text = "I don't know that command"
 			bot.Send(msg)

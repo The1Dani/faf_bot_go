@@ -39,8 +39,10 @@ func GetUser(member_id, chat_id int64) (user, error) {
 	return u, nil
 }
 
-func GetAllMembers(users []user, chat_id int64) ([]user, error) {
-
+func GetAllMembers(chat_id int64) ([]user, error) {
+	
+	users := []user{}
+	
 	rows, err := DB.Query(`
 		SELECT full_name,
 		       nick_name,
@@ -50,7 +52,7 @@ func GetAllMembers(users []user, chat_id int64) ([]user, error) {
 		FROM members WHERE chat_id = $1`, chat_id)
 
 	if err != nil {
-		log.Println("[ERROR] ", err)
+		log.Println("[ERROR]", err)
 		return users, err
 	}
 
@@ -60,7 +62,7 @@ func GetAllMembers(users []user, chat_id int64) ([]user, error) {
 		u := user{}
 		err = rows.Scan(&u.full_name, &u.nick_name, &u.member_id, &u.coefficient, &u.pidor_coefficient)
 		if err != nil {
-			log.Println("[ERROR] ", err)
+			log.Println("[ERROR]", err)
 
 		}
 		users = append(users, u)
@@ -315,7 +317,8 @@ func UpdateCurrent(chat_id, member_id int64, mode current_) {
 	if err != nil {
 		log.Println("[ERROR]", err)
 	}
-
+	
+	fmt.Println("[DEBUG] UpdateCurrent, member_id =", member_id)
 	update_string := fmt.Sprintf(`UPDATE %s SET member_id = $1, timestamp = $2 WHERE chat_id = $3`, mode)
 	_, err = tx.Exec(update_string, member_id, time.Now().Unix(), chat_id)
 
@@ -333,7 +336,7 @@ func GetStats(chat_id int64) (map[int64]counts, []user, error) {
 	var members []user
 	var results = make(map[int64]counts)
 
-	members, err := GetAllMembers(members, chat_id)
+	members, err := GetAllMembers(chat_id)
 
 	if err != nil {
 		return nil, nil, err
@@ -370,7 +373,7 @@ func GetStats(chat_id int64) (map[int64]counts, []user, error) {
 		err = rows.Scan(&pidor_count, &nice_count, &member_id)
 
 		if err != nil {
-			log.Println("[ERROR] ", err)
+			log.Println("[ERROR]", err)
 		}
 
 		results[member_id] = counts{
@@ -381,3 +384,4 @@ func GetStats(chat_id int64) (map[int64]counts, []user, error) {
 
 	return results, members, nil
 }
+

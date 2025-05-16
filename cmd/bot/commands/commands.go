@@ -328,7 +328,7 @@ func getRandomUserCarmic(chat_id int64, immune user, mode current_) (bool, user)
 
 	var members []user
 
-	members, err := GetAllMembers(members, chat_id)
+	members, err := GetAllMembers(chat_id)
 
 	if err != nil {
 		return false, user{}
@@ -383,7 +383,7 @@ func getRandomUser(chat_id int64, immune user) (bool, user) {
 
 	var members []user
 
-	members, err := GetAllMembers(members, chat_id)
+	members, err := GetAllMembers(chat_id)
 
 	if err != nil {
 		return false, user{}
@@ -427,7 +427,7 @@ func (u Update) Stats() {
 	}
 
 	sort.Slice(members, func(i, j int) bool {
-		return results[members[i].member_id].NiceCount < results[members[j].member_id].NiceCount
+		return results[members[i].member_id].NiceCount > results[members[j].member_id].NiceCount
 	})
 
 	for _, memb := range members {
@@ -458,7 +458,7 @@ func (u Update) PidorStats() {
 	}
 
 	sort.Slice(members, func(i, j int) bool {
-		return results[members[i].member_id].PidorCount < results[members[j].member_id].PidorCount
+		return results[members[i].member_id].PidorCount > results[members[j].member_id].PidorCount
 	})
 
 	for _, memb := range members {
@@ -470,4 +470,61 @@ func (u Update) PidorStats() {
 	msg.Text = text
 
 	u.Bot.Send(msg)
+}
+
+func (u Update) PercentStats() {
+
+	chat_id := u.Update.Message.Chat.ID
+	results, members, err := GetStats(chat_id)
+	text_list := []string{}
+
+	msg := BlankMessage(u.Update)
+
+	if err == sql.ErrNoRows {
+		msg.Text = "Nimei nu e inregistrat, statistica e goala"
+		u.Bot.Send(msg)
+		return
+	}
+
+	for _, memb := range members {
+
+		var pidor_percent, nice_percent int
+
+		user_stats := results[memb.member_id]
+		total := user_stats.NiceCount + user_stats.PidorCount
+
+		if user_stats.PidorCount == 0 && user_stats.NiceCount == 0 {
+			pidor_percent = 50
+			nice_percent = 50
+		} else if user_stats.PidorCount == 0 {
+			pidor_percent = 0
+			nice_percent = 100
+		} else if user_stats.NiceCount == 0 {
+			nice_percent = 0
+			pidor_percent = 100
+		} else {
+			pidor_percent = (user_stats.PidorCount / total) * 100
+			nice_percent = 100 - pidor_percent
+		}
+
+		results[memb.member_id] = counts{
+			PidorCount: pidor_percent,
+			NiceCount:  nice_percent,
+		}
+	}
+
+	sort.Slice(members, func(i int, j int) bool {
+		return results[members[i].member_id].NiceCount > results[members[j].member_id].NiceCount
+	})
+
+	for _, memb := range members {
+		txt := fmt.Sprintf("%s \\(%s\\) e %v%% krasavcik si e %v%% pidor", tgbotapi.EscapeText(tgbotapi.ModeMarkdownV2, memb.full_name), memb.pingText(), results[memb.member_id].NiceCount, results[memb.member_id].PidorCount)
+
+		text_list = append(text_list, txt)
+	}
+
+	msg.ParseMode = tgbotapi.ModeMarkdownV2
+	msg.Text = strings.Join(text_list, "\n")
+	u.Bot.Send(msg)
+
 }
