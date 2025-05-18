@@ -385,3 +385,36 @@ func GetStats(chat_id int64) (map[int64]counts, []user, error) {
 	return results, members, nil
 }
 
+func SetCarmic(chat_id int64, val bool) {
+	
+	
+	var enabled bool = false
+	
+	err := DB.QueryRow(`SELECT EXISTS(SELECT 1 FROM carmadicesenabled WHERE chat_id=$1)`, chat_id).Scan(&enabled)
+
+	if err != nil {
+		log.Println("[ERROR]", err)
+	}
+	
+	log.Println("[DEBUG] SetCarmic_DB chat_id, enabled, val", chat_id, enabled, val)
+	
+	tx, err := DB.Begin()
+
+	if err != nil {
+		log.Println("[ERROR]", err)
+	}
+	
+	if enabled && !val {
+		_, err = tx.Exec(`DELETE FROM carmadicesenabled WHERE chat_id = $1`, chat_id)
+	} else if !enabled && val{
+		_, err = tx.Exec(`INSERT INTO carmadicesenabled (chat_id) VALUES ($1)`, chat_id)
+	}
+	
+	if err != nil {
+		log.Println("[ERROR]", err)
+		tx.Rollback()
+	} else {
+		tx.Commit()
+	}
+	
+}

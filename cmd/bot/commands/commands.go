@@ -528,3 +528,20 @@ func (u Update) PercentStats() {
 	u.Bot.Send(msg)
 
 }
+
+func (u Update) Carmic() {
+	
+	
+	msg := BlankMessage(u.Update)
+	
+	msg.Text = "Porniti cuburile karmei? Daca sunt pornite, pidorii vor avea sanse mai mari sa devina krasavcici, iar krasavcicii - sa devina pidori"
+	
+	msg.ReplyMarkup = tgbotapi.NewInlineKeyboardMarkup(
+		tgbotapi.NewInlineKeyboardRow(
+			tgbotapi.NewInlineKeyboardButtonData("Da", fmt.Sprintf("carmic:true")),
+			tgbotapi.NewInlineKeyboardButtonData("Nu", fmt.Sprintf("carmic:false")),
+		),
+	)
+
+	u.Bot.Send(msg)
+}

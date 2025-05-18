@@ -3,6 +3,7 @@ package main
 import (
 	"log"
 	"os"
+	"strings"
 
 	"github.com/The1Dani/faf_bot_go/cmd/bot/commands"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
@@ -19,7 +20,7 @@ func StartTelegramBot() {
 
 	upd := commands.Update{Bot: bot}
 
-	bot.Debug = false
+	bot.Debug = true
 
 	log.Printf("Authorized on account %s", bot.Self.UserName)
 
@@ -32,6 +33,22 @@ func StartTelegramBot() {
 
 		upd.Update = update
 
+		if update.CallbackQuery != nil {
+			callback := tgbotapi.NewCallback(update.CallbackQuery.ID, update.CallbackQuery.Data)
+			
+			reponse := strings.Split(update.CallbackQuery.Data, ":")
+			
+			if _, err := bot.Request(callback); err != nil {
+				panic(err)
+			}
+			
+			switch reponse[0] {
+				case commands.Carmic :
+					upd.CallBackCarmic(reponse[1])
+			}
+			
+		}
+		
 		if update.Message == nil { // ignore any non-Message updates
 			continue
 		}
@@ -67,6 +84,8 @@ func StartTelegramBot() {
 			upd.PidorStats()
 		case "percentstats":
 			upd.PercentStats()
+		case "carmicdices":
+			upd.Carmic()
 		default:
 			msg.Text = "I don't know that command"
 			bot.Send(msg)
