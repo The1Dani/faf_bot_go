@@ -24,7 +24,7 @@ jobs:
     - name: Build
       run: |
         ls
-        CGO_ENABLED=0 go build -o /build/bot /cmd/bot
+        CGO_ENABLED=0 go build -o ./build/bot ./cmd/bot
   
     - name: SCP files via ssh key
       uses: appleboy/scp-action@master
