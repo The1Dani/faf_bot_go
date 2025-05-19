@@ -1,0 +1,29 @@
+services:
+  database:
+    image: postgres
+    volumes:
+      - /home/dani/data-test:/var/lib/postgresql/data
+    environment:
+      POSTGRES_PASSWORD: "11111"
+    networks:
+      - ntw
+    healthcheck:
+      test: ["CMD", "pg_isready"]
+      timeout: 20s
+      retries: 10
+  bot:
+    image: faf-bot-go
+    build: .
+
+    environment:
+      FAFBOT_PGSQL_CONNECTION: "postgresql://database:5432?user=postgres&password=11111&sslmode=disable"
+      TELEGRAM_APITOKEN: ${TOKEN}
+    networks:
+      - ntw
+    depends_on:
+      database:
+        condition: service_healthy
+
+networks:
+  ntw:
+    driver: bridge

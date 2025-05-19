@@ -35,20 +35,20 @@ func StartTelegramBot() {
 
 		if update.CallbackQuery != nil {
 			callback := tgbotapi.NewCallback(update.CallbackQuery.ID, update.CallbackQuery.Data)
-			
+
 			reponse := strings.Split(update.CallbackQuery.Data, ":")
-			
+
 			if _, err := bot.Request(callback); err != nil {
 				panic(err)
 			}
-			
+
 			switch reponse[0] {
-				case commands.Carmic :
-					upd.CallBackCarmic(reponse[1])
+			case commands.Carmic:
+				upd.CallBackCarmic(reponse[1])
 			}
-			
+
 		}
-		
+
 		if update.Message == nil { // ignore any non-Message updates
 			continue
 		}
@@ -66,14 +66,8 @@ func StartTelegramBot() {
 		switch update.Message.Command() {
 		case "reg":
 			upd.Reg()
-		case "nick":
-			upd.EchoNickName()
 		case "unreg":
 			upd.Unreg()
-		case "pingme":
-			upd.PingMe()
-		case "sticker":
-			upd.SendSticker()
 		case "pidor":
 			upd.Pidor()
 		case "run":
@@ -91,13 +85,9 @@ func StartTelegramBot() {
 			bot.Send(msg)
 		}
 
-		// _, err := bot.Send(msg)
-
 		if err != nil {
 			log.Panic(err)
 		}
-
-		log.Println(update.Message.From.FirstName)
 
 	}
 }
