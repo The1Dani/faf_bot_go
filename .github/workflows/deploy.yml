@@ -44,5 +44,7 @@ jobs:
         key: ${{ secrets.SSH_KEY }}
         script: |
           cd /home/mr_faf/apps/faf-go-bot/
+          cp ./deploy/* .
+          rm -rf ./deploy
           ls
           bash ./deploy.sh
