@@ -33,7 +33,7 @@ jobs:
         port: ${{ secrets.PORT }}
         username: ${{ secrets.USERNAME }}
         key: ${{ secrets.SSH_KEY }}
-        source: './deploy/*,./docker-compose.yaml'
+        source: './deploy/*,./docker-compose.yaml,./sql'
         target: '/home/mr_faf/apps/faf-go-bot/'
     - name: Run SSH command
       uses: appleboy/ssh-action@v1
