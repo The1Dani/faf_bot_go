@@ -25,21 +25,22 @@ jobs:
       run: CGO_ENABLED=0 go build -o /build/bot /cmd/bot
   
     - name: SCP files via ssh key
-        uses: appleboy/scp-action@master
-        with:
-          host: ${{ secrets.HOST }}
-          port: ${{ secrets.PORT }}
-          username: ${{ secrets.USERNAME }}
-          key: ${{ secrets.SSH_KEY }}
-          source: './Backend/Build/*'
-          target: '/home/mr_faf/deploy'
-      - name: Run SSH command
-        uses: appleboy/ssh-action@v1
-        with:
-          host: ${{ secrets.HOST }}
-          port: ${{ secrets.PORT }}
-          username: ${{ secrets.USERNAME }}
-          key: ${{ secrets.SSH_KEY }}
-          script: |
-            cd /home/mr_faf/deploy/Backend/Build
-            bash ./docker_up.sh
+      uses: appleboy/scp-action@master
+      with:
+        host: ${{ secrets.HOST }}
+        port: ${{ secrets.PORT }}
+        username: ${{ secrets.USERNAME }}
+        key: ${{ secrets.SSH_KEY }}
+        source: './Build/'
+        target: '/home/mr_faf/apps/faf-go-bot/'
+    - name: Run SSH command
+      uses: appleboy/ssh-action@v1
+      with:
+        host: ${{ secrets.HOST }}
+        port: ${{ secrets.PORT }}
+        username: ${{ secrets.USERNAME }}
+        key: ${{ secrets.SSH_KEY }}
+        script: |
+          cd /home/mr_faf/apps/faf-go-bot/
+          ls
+          bash ./deploy.sh
