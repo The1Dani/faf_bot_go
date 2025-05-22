@@ -241,7 +241,7 @@ func (u Update) Nice() {
 
 		nice_count := UpdateStats(chat_id, nice_user.member_id, nice_stats) //TEST
 
-		bdy := tgbotapi.EscapeText(tgbotapi.ModeMarkdownV2, fmt.Sprintf("Pidorul zilei - %s ", nice_user.full_name))
+		bdy := tgbotapi.EscapeText(tgbotapi.ModeMarkdownV2, fmt.Sprintf("Krasavciku zilei - %s ", nice_user.full_name))
 
 		msg.Text = fmt.Sprintf("%s %s", bdy, nice_user.pingText())
 

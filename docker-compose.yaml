@@ -8,8 +8,8 @@ services:
     networks:
       - ntw
     healthcheck:
-      test: ["CMD", "pg_isready"]
-      timeout: 20s
+      test: ["CMD", "pg_isready", "-U", "postgres"]
+      timeout: 5s
       retries: 10
   bot:
     image: faf-bot-go

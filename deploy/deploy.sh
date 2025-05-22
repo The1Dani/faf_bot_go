@@ -6,4 +6,5 @@ cd $SCRIPT_DIR
 
 source ../env.sh
 sudo docker compose down
+sudo docker compose build
 sudo TOKEN=$TELEGRAM_APITOKEN docker compose up -d
