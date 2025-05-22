@@ -30,9 +30,9 @@ func StartTelegramBot() {
 
 	updates := bot.GetUpdatesChan(u)
 
-	// CHANGE AFTER USE
-	m := tgbotapi.NewMessage(messages.THE_SERVER, "Hello From rewritten Bot")	
-	bot.Send(m)
+	// // CHANGE AFTER USE
+	// m := tgbotapi.NewMessage(messages.THE_SERVER, "Hello From rewritten Bot")	
+	// bot.Send(m)
 	
 	for update := range updates {
 
