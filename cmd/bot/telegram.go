@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/The1Dani/faf_bot_go/cmd/bot/commands"
+	"github.com/The1Dani/faf_bot_go/cmd/bot/messages"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )
 
@@ -29,6 +30,10 @@ func StartTelegramBot() {
 
 	updates := bot.GetUpdatesChan(u)
 
+	// CHANGE AFTER USE
+	m := tgbotapi.NewMessage(messages.THE_SERVER, "Hello From rewritten Bot")	
+	bot.Send(m)
+	
 	for update := range updates {
 
 		upd.Update = update
