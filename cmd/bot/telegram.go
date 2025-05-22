@@ -6,7 +6,7 @@ import (
 	"strings"
 
 	"github.com/The1Dani/faf_bot_go/cmd/bot/commands"
-	"github.com/The1Dani/faf_bot_go/cmd/bot/messages"
+	// "github.com/The1Dani/faf_bot_go/cmd/bot/messages"
 	tgbotapi "github.com/go-telegram-bot-api/telegram-bot-api/v5"
 )
 
