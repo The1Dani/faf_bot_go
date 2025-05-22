@@ -52,14 +52,14 @@ func StartPostgreSQL() *sql.DB {
 		return nil
 	}
 
-	ok := migratePostgres(db)
-	if !ok {
-		err := db.Close()
-		if err != nil {
-			log.Println("Error while closing PostgreSQL connection due to failed migration:", err)
-		}
-		return nil
-	}
+	// ok := migratePostgres(db)
+	// if !ok {
+	// 	err := db.Close()
+	// 	if err != nil {
+	// 		log.Println("Error while closing PostgreSQL connection due to failed migration:", err)
+	// 	}
+	// 	return nil
+	// }
 
 	return db
 }
