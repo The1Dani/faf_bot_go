@@ -88,12 +88,12 @@ func ComputeUnappliedMigrations(requiredMigs []Migration, appliedMigs []Migratio
 func ApplyMigrationPG(tx *sql.Tx, mig *Migration) error {
 	log.Println("Applying migration", mig.FileName)
 
-	// _, err := tx.Exec(mig.Query)
-	// if err != nil {
-	// 	return err
-	// }
+	_, err := tx.Exec(mig.Query)
+	if err != nil {
+		return err
+	}
 
-	_, err := tx.Exec("INSERT INTO migrations (file_name, query) VALUES($1, $2)", mig.FileName, mig.Query)
+	_, err = tx.Exec("INSERT INTO migrations (file_name, query) VALUES($1, $2)", mig.FileName, mig.Query)
 	if err != nil {
 		return err
 	}
