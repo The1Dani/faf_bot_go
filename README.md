@@ -55,3 +55,7 @@ If you want to host this bot see [docker-compose](docker-compose.yaml) be carefu
 ```bash
 TOKEN="YOUR-TOKEN" docker compose up -d
 ```
+
+### Used and Inspired Projects:
+- [smig](https://github.com/tsoding/smig)
+- [Gatekeeper](https://github.com/tsoding/Gatekeeper)
