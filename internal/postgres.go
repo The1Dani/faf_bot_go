@@ -6,7 +6,7 @@ import (
 	"os"
 
 	_ "github.com/lib/pq"
-	"github.com/tsoding/smig"
+	"github.com/The1Dani/faf_bot_go/smig"
 )
 
 func migratePostgres(db *sql.DB) bool {
@@ -52,14 +52,14 @@ func StartPostgreSQL() *sql.DB {
 		return nil
 	}
 
-	// ok := migratePostgres(db)
-	// if !ok {
-	// 	err := db.Close()
-	// 	if err != nil {
-	// 		log.Println("Error while closing PostgreSQL connection due to failed migration:", err)
-	// 	}
-	// 	return nil
-	// }
+	ok := migratePostgres(db)
+	if !ok {
+		err := db.Close()
+		if err != nil {
+			log.Println("Error while closing PostgreSQL connection due to failed migration:", err)
+		}
+		return nil
+	}
 
 	
 	

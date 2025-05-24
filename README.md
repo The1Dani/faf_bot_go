@@ -27,7 +27,7 @@ You can build the project using the bash scripts provided in the scripts using t
 
 ```bash
 #/scripts/.env
-TELEGRAM_APITOKEN="YOUR-TELEGRAM-TOKEN"
+TELEGRAM_APITOKEN="YOUR-TOKEN"
 ```
 
 To build the GO binary run
@@ -50,5 +50,8 @@ To stop the already started DB use
 make stop-db
 ```
 
-If you want to host this bot see [docker-compose](docker-compose.yaml)
-# To BE CONTINUED
+If you want to host this bot see [docker-compose](docker-compose.yaml) be carefull you need to set a different enviremont to use this and you need the TOKEN env variable in order to use the container. If you dont want it you can always change it!
+
+```bash
+TOKEN="YOUR-TOKEN" docker compose up -d
+```
