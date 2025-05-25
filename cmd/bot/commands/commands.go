@@ -34,7 +34,6 @@ type counts struct {
 }
 
 func (u Update) getFullName() string {
-
 	user := u.Update.Message.From
 
 	full_name := user.FirstName
@@ -43,11 +42,9 @@ func (u Update) getFullName() string {
 	}
 
 	return full_name
-
 }
 
 func (u Update) pingText() string {
-
 	ping_text := fmt.Sprintf("[@%s](tg://user?id=%d)", tgbotapi.EscapeText(tgbotapi.ModeMarkdownV2, u.Update.Message.From.String()), u.Update.Message.From.ID)
 
 	// ping_text = tgbotapi.EscapeText(tgbotapi.ModeMarkdownV2, ping_text)
@@ -56,7 +53,6 @@ func (u Update) pingText() string {
 }
 
 func (u user) pingText() string {
-
 	user_string := u.nick_name
 
 	if user_string == "" {
@@ -69,7 +65,6 @@ func (u user) pingText() string {
 }
 
 func (u Update) pingMessage(text string) tgbotapi.MessageConfig {
-
 	msg := BlankMessage(u.Update)
 	msg.ParseMode = tgbotapi.ModeMarkdownV2
 
@@ -79,7 +74,6 @@ func (u Update) pingMessage(text string) tgbotapi.MessageConfig {
 }
 
 func (u Update) Reg() {
-
 	var msg tgbotapi.MessageConfig
 
 	chat_id := u.Update.Message.Chat.ID
@@ -89,7 +83,7 @@ func (u Update) Reg() {
 
 	full_name := u.getFullName()
 
-	//old
+	// old
 	// full_name := Update.Message.From.String()
 	ok := CreateUser(chat_id, reg_member_id, full_name, user_name)
 
@@ -101,26 +95,22 @@ func (u Update) Reg() {
 	// }
 
 	if ok {
-		msg = u.pingMessage(", te-ai inregistrat cu succes")
+		msg = u.pingMessage(", " + messages.REGISTERED)
 	} else {
-		msg = u.pingMessage(", dece te inregistrezi de 2 ori? 🤡")
+		msg = u.pingMessage(", " + messages.ALREADY_REGISTERED)
 	}
 
 	_, err := u.Bot.Send(msg)
-
 	if err != nil {
 		log.Printf("[ERROR] %v", err)
 	}
-
 }
 
 func (u Update) Unreg() {
-
 	chat_id := u.Update.Message.Chat.ID
 	member_id := u.Update.Message.From.ID
 
 	ok, err := DeleteUser(chat_id, member_id)
-
 	if err != nil {
 		log.Println("[ERROR]", err)
 	}
@@ -128,19 +118,17 @@ func (u Update) Unreg() {
 	msg := BlankMessage(u.Update)
 
 	if ok {
-		msg = u.pingMessage(" a iesit cu pozor, dar statistica tine minte tot")
+		msg = u.pingMessage(messages.UNREG)
 	} else if err != nil {
-		msg.Text = "utilizatorul nu a fost gasit"
+		msg.Text = messages.NOT_FOUND
 	} else {
-		msg.Text = fmt.Sprint("Internal Error ", err)
+		msg.Text = fmt.Sprint(messages.INTERNAL_ERROR, err)
 	}
 
 	u.Bot.Send(msg)
-
 }
 
 func (u Update) Pidor() {
-
 	chat_id := u.Update.Message.Chat.ID
 
 	msg := BlankMessage(u.Update)
@@ -152,8 +140,7 @@ func (u Update) Pidor() {
 	ok, curr_user, curr_opp_user := TimeNotExpired(chat_id, pidor) // TEST | Add funct for getting the opposite modes user
 
 	if ok {
-		msg.Text = fmt.Sprintf("Pidorul zilei este deja selectet, este %s \\(%s\\)", curr_user.full_name, curr_user.pingText())
-
+		msg.Text = fmt.Sprintf(messages.PIDOR_ALREADY_SELECTED+"%s \\(%s\\)", curr_user.full_name, curr_user.pingText())
 	} else {
 
 		var pidor_user user
@@ -166,14 +153,14 @@ func (u Update) Pidor() {
 		}
 
 		if !ok {
-			msg.Text = "Imposibil de selectat, lista de candidati e goala"
+			msg.Text = messages.EMPTY_LIST
 			u.Bot.Send(msg)
 			return
 		}
 
-		pidor_count := UpdateStats(chat_id, pidor_user.member_id, pidor_stats) //TEST
+		pidor_count := UpdateStats(chat_id, pidor_user.member_id, pidor_stats) // TEST
 
-		bdy := tgbotapi.EscapeText(tgbotapi.ModeMarkdownV2, fmt.Sprintf("Pidorul zilei - %s ", pidor_user.full_name))
+		bdy := tgbotapi.EscapeText(tgbotapi.ModeMarkdownV2, fmt.Sprintf(messages.PIDOR_IS+"- %s ", pidor_user.full_name))
 
 		msg.Text = fmt.Sprintf("%s %s", bdy, pidor_user.pingText())
 
@@ -204,11 +191,9 @@ func (u Update) Pidor() {
 		u.Bot.Send(congrats)
 		u.Bot.Send(sticker)
 	}
-
 }
 
 func (u Update) Nice() {
-
 	chat_id := u.Update.Message.Chat.ID
 
 	msg := BlankMessage(u.Update)
@@ -220,8 +205,7 @@ func (u Update) Nice() {
 	ok, curr_user, curr_opp_user := TimeNotExpired(chat_id, nice) // TEST
 
 	if ok {
-		msg.Text = fmt.Sprintf("Krasavciku e deja selectat, e %s \\(%s\\)", curr_user.full_name, curr_user.pingText())
-
+		msg.Text = fmt.Sprintf(messages.NICE_ALREADY_SELECTED+"%s \\(%s\\)", curr_user.full_name, curr_user.pingText())
 	} else {
 
 		var nice_user user
@@ -234,14 +218,14 @@ func (u Update) Nice() {
 		}
 
 		if !ok {
-			msg.Text = "Imposibil de selectat, lista de candidati e goala"
+			msg.Text = messages.EMPTY_LIST
 			u.Bot.Send(msg)
 			return
 		}
 
-		nice_count := UpdateStats(chat_id, nice_user.member_id, nice_stats) //TEST
+		nice_count := UpdateStats(chat_id, nice_user.member_id, nice_stats) // TEST
 
-		bdy := tgbotapi.EscapeText(tgbotapi.ModeMarkdownV2, fmt.Sprintf("Krasavciku zilei - %s ", nice_user.full_name))
+		bdy := tgbotapi.EscapeText(tgbotapi.ModeMarkdownV2, fmt.Sprintf(messages.NICE_IS+"- %s ", nice_user.full_name))
 
 		msg.Text = fmt.Sprintf("%s %s", bdy, nice_user.pingText())
 
@@ -272,11 +256,9 @@ func (u Update) Nice() {
 		u.Bot.Send(congrats)
 		u.Bot.Send(sticker)
 	}
-
 }
 
 func (u Update) EchoNickName() {
-
 	member_id := u.Update.Message.From.ID
 	chat_id := u.Update.Message.Chat.ID
 
@@ -292,11 +274,9 @@ func (u Update) EchoNickName() {
 	}
 
 	u.Bot.Send(msg)
-
 }
 
 func (u Update) PingMe() {
-
 	msg := BlankMessage(u.Update)
 	msg.ParseMode = tgbotapi.ModeMarkdownV2
 
@@ -309,11 +289,9 @@ func (u Update) PingMe() {
 	log.Println("[DEBUG] ", ping_text)
 
 	u.Bot.Send(msg)
-
 }
 
 func (u Update) SendSticker() {
-
 	chat_id := u.Update.Message.Chat.ID
 
 	stF := tgbotapi.FileURL(messages.BILLY_TEAR_OFF_VEST)
@@ -321,15 +299,12 @@ func (u Update) SendSticker() {
 	st := tgbotapi.NewSticker(chat_id, stF)
 
 	u.Bot.Send(st)
-
 }
 
 func getRandomUserCarmic(chat_id int64, immune user, mode current_) (bool, user) {
-
 	var members []user
 
 	members, err := GetAllMembers(chat_id)
-
 	if err != nil {
 		return false, user{}
 	}
@@ -370,7 +345,6 @@ func getRandomUserCarmic(chat_id int64, immune user, mode current_) (bool, user)
 	}
 
 	r, err := randutil.WeightedChoice(choices)
-
 	if err != nil {
 		log.Println("[ERROR]", err)
 		return false, user{}
@@ -380,11 +354,9 @@ func getRandomUserCarmic(chat_id int64, immune user, mode current_) (bool, user)
 }
 
 func getRandomUser(chat_id int64, immune user) (bool, user) {
-
 	var members []user
 
 	members, err := GetAllMembers(chat_id)
-
 	if err != nil {
 		return false, user{}
 	}
@@ -411,16 +383,15 @@ func getRandomUser(chat_id int64, immune user) (bool, user) {
 }
 
 func (u Update) Stats() {
-
 	var text string
 
 	msg := BlankMessage(u.Update)
 	chat_id := u.Update.Message.Chat.ID
 	results, members, err := GetStats(chat_id)
-	text_list := []string{"Rezultatele jocului krasavciku zilei:"}
+	text_list := []string{messages.NICE_RESULTS}
 
 	if err == sql.ErrNoRows || err != nil {
-		msg.Text = "Nimei nu e inregistrat, statistica e goala"
+		msg.Text = messages.EMPTY_STATS
 		u.Bot.Send(msg)
 		u.Bot.Send(tgbotapi.NewMessage(chat_id, fmt.Sprint(err)))
 		return
@@ -443,16 +414,15 @@ func (u Update) Stats() {
 }
 
 func (u Update) PidorStats() {
-
 	var text string
 
 	msg := BlankMessage(u.Update)
 	chat_id := u.Update.Message.Chat.ID
 	results, members, err := GetStats(chat_id)
-	text_list := []string{"Rezultatele jocului pidoru zilei:"}
+	text_list := []string{messages.PIDOR_RESULTS}
 
 	if err == sql.ErrNoRows {
-		msg.Text = "Nimei nu e inregistrat, statistica e goala"
+		msg.Text = messages.EMPTY_STATS
 		u.Bot.Send(msg)
 		return
 	}
@@ -473,7 +443,6 @@ func (u Update) PidorStats() {
 }
 
 func (u Update) PercentStats() {
-
 	chat_id := u.Update.Message.Chat.ID
 	results, members, err := GetStats(chat_id)
 	text_list := []string{}
@@ -481,7 +450,7 @@ func (u Update) PercentStats() {
 	msg := BlankMessage(u.Update)
 
 	if err == sql.ErrNoRows {
-		msg.Text = "Nimei nu e inregistrat, statistica e goala"
+		msg.Text = messages.EMPTY_STATS
 		u.Bot.Send(msg)
 		return
 	}
@@ -526,20 +495,17 @@ func (u Update) PercentStats() {
 	msg.ParseMode = tgbotapi.ModeMarkdownV2
 	msg.Text = strings.Join(text_list, "\n")
 	u.Bot.Send(msg)
-
 }
 
 func (u Update) Carmic() {
-	
-	
 	msg := BlankMessage(u.Update)
-	
-	msg.Text = "Porniti cuburile karmei? Daca sunt pornite, pidorii vor avea sanse mai mari sa devina krasavcici, iar krasavcicii - sa devina pidori"
-	
+
+	msg.Text = messages.CARMIC_TEXT
+
 	msg.ReplyMarkup = tgbotapi.NewInlineKeyboardMarkup(
 		tgbotapi.NewInlineKeyboardRow(
-			tgbotapi.NewInlineKeyboardButtonData("Da", fmt.Sprintf("carmic:true")),
-			tgbotapi.NewInlineKeyboardButtonData("Nu", fmt.Sprintf("carmic:false")),
+			tgbotapi.NewInlineKeyboardButtonData(messages.YES, "carmic:true"),
+			tgbotapi.NewInlineKeyboardButtonData(messages.NO, "carmic:false"),
 		),
 	)
 
