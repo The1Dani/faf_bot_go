@@ -1,4 +1,1 @@
-CREATE TABLE carmadicesenabled (
-    id INT DEFAULT nextval('id'::regclass) NOT NULL,
-    chat_id BIGINT
-);
+CREATE TABLE carmadicesenabled (id SERIAL PRIMARY KEY, chat_id BIGINT);

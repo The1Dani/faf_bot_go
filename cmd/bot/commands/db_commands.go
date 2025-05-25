@@ -11,8 +11,10 @@ import (
 
 var DB *sql.DB
 
-type current_ string
-type current_stats_ string
+type (
+	current_       string
+	current_stats_ string
+)
 
 const (
 	pidor       current_       = "currentpidor"
@@ -22,7 +24,6 @@ const (
 )
 
 func GetUser(member_id, chat_id int64) (user, error) {
-
 	var u user
 
 	log.Printf("[DEBUG] Selecting user where member_id = %d and chat_id = %d\n", member_id, chat_id)
@@ -40,9 +41,8 @@ func GetUser(member_id, chat_id int64) (user, error) {
 }
 
 func GetAllMembers(chat_id int64) ([]user, error) {
-	
 	users := []user{}
-	
+
 	rows, err := DB.Query(`
 		SELECT full_name,
 		       nick_name,
@@ -50,7 +50,6 @@ func GetAllMembers(chat_id int64) ([]user, error) {
 			   coefficient,
 			   pidor_coefficient
 		FROM members WHERE chat_id = $1`, chat_id)
-
 	if err != nil {
 		log.Println("[ERROR]", err)
 		return users, err
@@ -63,21 +62,17 @@ func GetAllMembers(chat_id int64) ([]user, error) {
 		err = rows.Scan(&u.full_name, &u.nick_name, &u.member_id, &u.coefficient, &u.pidor_coefficient)
 		if err != nil {
 			log.Println("[ERROR]", err)
-
 		}
 		users = append(users, u)
 	}
 
 	return users, nil
-
 }
 
 func CreateUser(chat_id, reg_member_id int64, full_name, user_name string) bool {
-
 	is_user_in_chat := false
 
 	tx, err := DB.Begin()
-
 	if err != nil {
 		log.Println("[ERROR] ", err)
 		return false
@@ -88,7 +83,6 @@ func CreateUser(chat_id, reg_member_id int64, full_name, user_name string) bool 
 	err = tx.QueryRow(`
     SELECT EXISTS(SELECT 1 FROM members WHERE chat_id=$1 AND member_id=$2)
     `, chat_id, reg_member_id).Scan(&is_user_in_chat)
-
 	if err != nil {
 		log.Println("[ERROR]:_exists: ", err)
 		return false
@@ -102,7 +96,6 @@ func CreateUser(chat_id, reg_member_id int64, full_name, user_name string) bool 
 		INSERT INTO members (chat_id, member_id, coefficient, pidor_coefficient, full_name, nick_name)
 		VALUES ($1, $2, $3, $4, $5, $6)
 	`, chat_id, reg_member_id, 10, 10, full_name, user_name)
-
 	if err != nil {
 		log.Println("[ERROR] ", err)
 		return false
@@ -187,7 +180,6 @@ func CreateUser(chat_id, reg_member_id int64, full_name, user_name string) bool 
 }
 
 func DeleteUser(chat_id, member_id int64) (bool, error) {
-
 	tx, err := DB.Begin()
 	defer tx.Commit()
 
@@ -197,7 +189,6 @@ func DeleteUser(chat_id, member_id int64) (bool, error) {
 	}
 
 	res, err := tx.Exec("DELETE FROM members WHERE chat_id = $1 AND member_id = $2", chat_id, member_id)
-
 	if err != nil {
 		tx.Rollback()
 		return false, err
@@ -232,7 +223,6 @@ func TimeNotExpired(chat_id int64, mode current_) (bool, user, user) {
 	querry_string = fmt.Sprintf(`SELECT timestamp, member_id FROM %s WHERE chat_id = $1`, mode)
 	row := DB.QueryRow(querry_string, chat_id)
 	err := row.Scan(&db_timestamp, &curr_user.member_id)
-
 	if err != nil {
 		log.Println("[ERROR]", err)
 	}
@@ -240,7 +230,6 @@ func TimeNotExpired(chat_id int64, mode current_) (bool, user, user) {
 	querry_string = fmt.Sprintf(`SELECT member_id FROM %s WHERE chat_id = $1`, opp_mode)
 	row = DB.QueryRow(querry_string, chat_id)
 	err = row.Scan(&curr_opp_user.member_id)
-
 	if err != nil {
 		log.Println("[ERROR]", err)
 	}
@@ -266,11 +255,9 @@ func TimeNotExpired(chat_id int64, mode current_) (bool, user, user) {
 }
 
 func CarmicDicesEnabled(chat_id int64) bool {
-
 	var enabled bool = false
 
 	err := DB.QueryRow(`SELECT EXISTS(SELECT 1 FROM carmadicesenabled WHERE chat_id=$1)`, chat_id).Scan(&enabled)
-
 	if err != nil {
 		log.Println("[ERROR]", err)
 	}
@@ -279,9 +266,7 @@ func CarmicDicesEnabled(chat_id int64) bool {
 }
 
 func UpdateStats(chat_id, member_id int64, mode current_stats_) int32 {
-
 	tx, err := DB.Begin()
-
 	if err != nil {
 		log.Println("[ERROR]", err)
 	}
@@ -300,7 +285,6 @@ func UpdateStats(chat_id, member_id int64, mode current_stats_) int32 {
 
 	query_string := fmt.Sprintf(`SELECT count FROM %s WHERE member_id = $1 AND chat_id = $2`, mode)
 	err = DB.QueryRow(query_string, member_id, chat_id).Scan(&count)
-
 	if err != nil {
 		log.Println("[ERROR]", err)
 	}
@@ -311,13 +295,11 @@ func UpdateStats(chat_id, member_id int64, mode current_stats_) int32 {
 }
 
 func UpdateCurrent(chat_id, member_id int64, mode current_) {
-
 	tx, err := DB.Begin()
-
 	if err != nil {
 		log.Println("[ERROR]", err)
 	}
-	
+
 	fmt.Println("[DEBUG] UpdateCurrent, member_id =", member_id)
 	update_string := fmt.Sprintf(`UPDATE %s SET member_id = $1, timestamp = $2 WHERE chat_id = $3`, mode)
 	_, err = tx.Exec(update_string, member_id, time.Now().Unix(), chat_id)
@@ -328,21 +310,18 @@ func UpdateCurrent(chat_id, member_id int64, mode current_) {
 	} else {
 		tx.Commit()
 	}
-
 }
 
 func GetStats(chat_id int64) (map[int64]counts, []user, error) {
-
 	var members []user
-	var results = make(map[int64]counts)
+	results := make(map[int64]counts)
 
 	members, err := GetAllMembers(chat_id)
-
 	if err != nil {
 		return nil, nil, err
 	}
 
-	qry := fmt.Sprintf(`
+	qry := `
 		WITH chat_members AS (
 		  SELECT * FROM members WHERE chat_id = $1
 		)
@@ -355,10 +334,9 @@ func GetStats(chat_id int64) (map[int64]counts, []user, error) {
 		  ON m.member_id = ps.member_id AND ps.chat_id = m.chat_id
 		LEFT JOIN stats s
 		  ON m.member_id = s.member_id AND s.chat_id = m.chat_id;
-  `)
+  `
 
 	rows, err := DB.Query(qry, chat_id)
-
 	if err != nil {
 		log.Println("[ERROR]", err)
 		return nil, nil, err
@@ -371,7 +349,6 @@ func GetStats(chat_id int64) (map[int64]counts, []user, error) {
 		var pidor_count, nice_count int
 
 		err = rows.Scan(&pidor_count, &nice_count, &member_id)
-
 		if err != nil {
 			log.Println("[ERROR]", err)
 		}
@@ -386,35 +363,31 @@ func GetStats(chat_id int64) (map[int64]counts, []user, error) {
 }
 
 func SetCarmic(chat_id int64, val bool) {
-	
-	
 	var enabled bool = false
-	
+
 	err := DB.QueryRow(`SELECT EXISTS(SELECT 1 FROM carmadicesenabled WHERE chat_id=$1)`, chat_id).Scan(&enabled)
-
 	if err != nil {
 		log.Println("[ERROR]", err)
 	}
-	
+
 	log.Println("[DEBUG] SetCarmic_DB chat_id, enabled, val", chat_id, enabled, val)
-	
-	tx, err := DB.Begin()
 
+	tx, err := DB.Begin()
 	if err != nil {
 		log.Println("[ERROR]", err)
 	}
-	
+
 	if enabled && !val {
 		_, err = tx.Exec(`DELETE FROM carmadicesenabled WHERE chat_id = $1`, chat_id)
-	} else if !enabled && val{
+	} else if !enabled && val {
 		_, err = tx.Exec(`INSERT INTO carmadicesenabled (chat_id) VALUES ($1)`, chat_id)
 	}
-	
+
 	if err != nil {
 		log.Println("[ERROR]", err)
 		tx.Rollback()
 	} else {
 		tx.Commit()
 	}
-	
 }
+
