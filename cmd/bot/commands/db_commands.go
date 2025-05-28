@@ -257,7 +257,7 @@ func TimeNotExpired(chat_id int64, mode current_) (bool, user, user) {
 func CarmicDicesEnabled(chat_id int64) bool {
 	var enabled bool = false
 
-	err := DB.QueryRow(`SELECT EXISTS(SELECT 1 FROM carmadicesenabled WHERE chat_id=$1)`, chat_id).Scan(&enabled)
+	err := DB.QueryRow(`SELECT EXISTS(SELECT 1 FROM carmicdicesenabled WHERE chat_id=$1)`, chat_id).Scan(&enabled)
 	if err != nil {
 		log.Println("[ERROR]", err)
 	}
@@ -363,9 +363,9 @@ func GetStats(chat_id int64) (map[int64]counts, []user, error) {
 }
 
 func SetCarmic(chat_id int64, val bool) {
-	var enabled bool = false
+	enabled := false
 
-	err := DB.QueryRow(`SELECT EXISTS(SELECT 1 FROM carmadicesenabled WHERE chat_id=$1)`, chat_id).Scan(&enabled)
+	err := DB.QueryRow(`SELECT EXISTS(SELECT 1 FROM carmicdicesenabled WHERE chat_id=$1)`, chat_id).Scan(&enabled)
 	if err != nil {
 		log.Println("[ERROR]", err)
 	}
@@ -378,9 +378,9 @@ func SetCarmic(chat_id int64, val bool) {
 	}
 
 	if enabled && !val {
-		_, err = tx.Exec(`DELETE FROM carmadicesenabled WHERE chat_id = $1`, chat_id)
+		_, err = tx.Exec(`DELETE FROM carmicdicesenabled WHERE chat_id = $1`, chat_id)
 	} else if !enabled && val {
-		_, err = tx.Exec(`INSERT INTO carmadicesenabled (chat_id) VALUES ($1)`, chat_id)
+		_, err = tx.Exec(`INSERT INTO carmicdicesenabled (chat_id) VALUES ($1)`, chat_id)
 	}
 
 	if err != nil {
