@@ -52,7 +52,7 @@ func GetAllMembers(chat_id int64) ([]user, error) {
 		FROM members WHERE chat_id = $1`, chat_id)
 	if err != nil {
 		log.Println("[ERROR]", err)
-		return users, err
+		return []user{}, err
 	}
 
 	defer rows.Close()
@@ -391,3 +391,36 @@ func SetCarmic(chat_id int64, val bool) {
 	}
 }
 
+func UpdateCarma(chat_id int64, operand user, mode current_) {
+	row := ""
+
+	switch mode {
+	case pidor:
+		row = "coefficient"
+	case nice:
+		row = "pidor_coefficient"
+	default:
+		row = ""
+	}
+
+	q := fmt.Sprintf(` --sql
+	UPDATE members
+	SET %s = CASE 
+		WHEN member_id = $1 THEN %[1]s - 1
+		ELSE %[1]s + 1
+	END
+	WHERE chat_id = $2
+		`, row)
+
+	tx, err := DB.Begin()
+	if err != nil {
+		log.Println("[ERROR]", err)
+		return
+	}
+	defer tx.Commit()
+
+	_, err = tx.Exec(q, operand.member_id, chat_id)
+	if err != nil {
+		log.Println("[ERROR]", err)
+	}
+}

@@ -148,6 +148,7 @@ func (u Update) Pidor() {
 
 		if CarmicDicesEnabled(chat_id) { // TEST
 			ok, pidor_user = getRandomUserCarmic(chat_id, curr_opp_user, pidor) // TEST
+			UpdateCarma(chat_id, pidor_user, pidor)
 		} else {
 			ok, pidor_user = getRandomUser(chat_id, curr_opp_user) // TEST
 		}
@@ -213,6 +214,7 @@ func (u Update) Nice() {
 
 		if CarmicDicesEnabled(chat_id) { // TEST
 			ok, nice_user = getRandomUserCarmic(chat_id, curr_opp_user, nice) // TEST
+			UpdateCarma(chat_id, nice_user, nice)
 		} else {
 			ok, nice_user = getRandomUser(chat_id, curr_opp_user) // TEST
 		}
