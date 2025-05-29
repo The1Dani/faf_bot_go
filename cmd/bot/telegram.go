@@ -11,7 +11,6 @@ import (
 )
 
 func StartTelegramBot() {
-
 	log.SetFlags(log.LstdFlags | log.Lshortfile)
 
 	bot, err := tgbotapi.NewBotAPI(os.Getenv("TELEGRAM_APITOKEN"))
@@ -21,7 +20,7 @@ func StartTelegramBot() {
 
 	upd := commands.Update{Bot: bot}
 
-	bot.Debug = true
+	bot.Debug = false
 
 	log.Printf("Authorized on account %s", bot.Self.UserName)
 
@@ -31,9 +30,9 @@ func StartTelegramBot() {
 	updates := bot.GetUpdatesChan(u)
 
 	// // CHANGE AFTER USE
-	// m := tgbotapi.NewMessage(messages.THE_SERVER, "Hello From rewritten Bot")	
+	// m := tgbotapi.NewMessage(messages.THE_SERVER, "Hello From rewritten Bot")
 	// bot.Send(m)
-	
+
 	for update := range updates {
 
 		upd.Update = update
