@@ -474,7 +474,7 @@ func (u Update) PercentStats() {
 			nice_percent = 0
 			pidor_percent = 100
 		} else {
-			pidor_percent = (user_stats.PidorCount / total) * 100
+			pidor_percent = int((float64(user_stats.PidorCount) / float64(total)) * 100.0)
 			nice_percent = 100 - pidor_percent
 		}
 
