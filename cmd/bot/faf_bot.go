@@ -17,6 +17,7 @@ func main() {
 
 	if DB == nil {
 		log.Println("Starting without PostgreSQL.")
+		panic("No database connection")
 	} else {
 		defer DB.Close()
 		log.Println("The PostgreSQL has succesfully started!")
