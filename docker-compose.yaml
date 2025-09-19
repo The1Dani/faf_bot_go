@@ -1,6 +1,8 @@
 services:
   database:
     image: postgres
+    container_name: database
+    restart: unless-stopped
     volumes:
       - /home/dani/data-test:/var/lib/postgresql/data
     environment:
@@ -11,8 +13,12 @@ services:
       test: ["CMD", "pg_isready", "-U", "postgres"]
       timeout: 5s
       retries: 10
+    ports:
+      - "5432:5432"
   bot:
     image: faf-bot-go
+    restart: unless-stopped
+    container_name: faf-bot
     build: .
 
     environment:

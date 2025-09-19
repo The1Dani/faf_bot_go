@@ -34,7 +34,7 @@ jobs:
         username: ${{ secrets.USERNAME }}
         key: ${{ secrets.SSH_KEY }}
         source: './deploy/*,./docker-compose.yaml,./sql'
-        target: '/home/mr_faf/apps/faf-go-bot/'
+        target: '/opt/apps/faf-bot'
     - name: Run SSH command
       uses: appleboy/ssh-action@v1
       with:
@@ -43,7 +43,7 @@ jobs:
         username: ${{ secrets.USERNAME }}
         key: ${{ secrets.SSH_KEY }}
         script: |
-          cd /home/mrfaf/apps/faf-go-bot/
+          cd /opt/apps/faf-bot
           cp ./deploy/* .
           rm -rf ./deploy
           ls
