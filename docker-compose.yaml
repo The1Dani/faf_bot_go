@@ -8,6 +8,3 @@ services:
       FAFBOT_PGSQL_CONNECTION: ${FAFBOT_PGSQL_CONNECTION} 
       #"postgresql://database:5432?user=postgres&password=11111&sslmode=disable"
       TELEGRAM_APITOKEN: ${TOKEN}
-    depends_on:
-      database:
-        condition: service_healthy
