@@ -8,15 +8,10 @@ services:
       #- /home/dani/data-test:/var/lib/postgresql/data
     environment:
       POSTGRES_PASSWORD: ${PGSQL_PASSWORD}
-    networks:
-      - ntw
+
     healthcheck:
       test: ["CMD", "pg_isready", "-U", "postgres"]
       timeout: 5s
       retries: 10
     ports:
       - "5432:5432"
-
-networks:
-  ntw:
-    driver: bridge
