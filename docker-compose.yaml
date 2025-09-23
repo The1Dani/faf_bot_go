@@ -1,35 +1,15 @@
 services:
-  database:
-    image: postgres
-    container_name: database
-    restart: unless-stopped
-    volumes:
-      - /home/dani/data-test:/var/lib/postgresql/data
-    environment:
-      POSTGRES_PASSWORD: "11111"
-    networks:
-      - ntw
-    healthcheck:
-      test: ["CMD", "pg_isready", "-U", "postgres"]
-      timeout: 5s
-      retries: 10
-    ports:
-      - "5432:5432"
   bot:
     image: faf-bot-go
     restart: unless-stopped
     container_name: faf-bot
-    build: .
 
     environment:
-      FAFBOT_PGSQL_CONNECTION: "postgresql://database:5432?user=postgres&password=11111&sslmode=disable"
+      FAFBOT_PGSQL_CONNECTION: ${FAFBOT_PGSQL_CONNECTION} 
+      #"postgresql://database:5432?user=postgres&password=11111&sslmode=disable"
       TELEGRAM_APITOKEN: ${TOKEN}
     networks:
       - ntw
     depends_on:
       database:
         condition: service_healthy
-
-networks:
-  ntw:
-    driver: bridge

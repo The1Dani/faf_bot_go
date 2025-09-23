@@ -1,0 +1,22 @@
+services:
+  database:
+    image: postgres
+    container_name: database
+    restart: unless-stopped
+    volumes:
+      - ${FAFBOT_PGSQL_DATA}:/var/lib/postgresql/data
+      #- /home/dani/data-test:/var/lib/postgresql/data
+    environment:
+      POSTGRES_PASSWORD: "11111"
+    networks:
+      - ntw
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "postgres"]
+      timeout: 5s
+      retries: 10
+    ports:
+      - "5432:5432"
+
+networks:
+  ntw:
+    driver: bridge
