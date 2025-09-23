@@ -21,6 +21,7 @@ func main() {
 	} else {
 		defer DB.Close()
 		log.Println("The PostgreSQL has succesfully started!")
+		log.Println("Hello, World!")
 	}
 
 	log.Println("Starting Telegram Bot")
