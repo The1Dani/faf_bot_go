@@ -1,6 +1,6 @@
 services:
   bot:
-    image: faf-bot-go
+    image: ghcr.io/the1dani/faf-bot:latest
     restart: unless-stopped
     container_name: faf-bot
 
