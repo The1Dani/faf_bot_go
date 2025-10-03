@@ -4,7 +4,7 @@ services:
     container_name: database
     restart: unless-stopped
     volumes:
-      - ${PGSQL_DATA}:/var/lib/postgresql/data
+      - ${PGSQL_DATA}:/var/lib/postgresql/data:Z
       #- /home/dani/data-test:/var/lib/postgresql/data
     environment:
       POSTGRES_PASSWORD: ${PGSQL_PASSWORD}
