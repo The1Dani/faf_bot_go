@@ -7,10 +7,7 @@ image:
 
 telegram:
   PGSQL_STR: "postgresql://database.faf-test.svc.cluster.local:5432?user=postgres&password=11111&sslmode=disable"
-  TOKEN:
-    secretKeyRef:
-      name: telegram-secret
-      key: TOKEN
+  TOKEN: ""
       
 podAnnotations: {}
 podLabels: {}
