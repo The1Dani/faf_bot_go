@@ -1,0 +1,18 @@
+replicaCount: 1
+
+image:
+  repository: ghcr.io/the1dani/faf-bot
+  tag: "latest"
+  pullPolicy: IfNotPresent
+
+telegram:
+  PGSQL_STR: "postgresql://database.faf-test.svc.cluster.local:5432?user=postgres&password=11111&sslmode=disable"
+  TOKEN:
+    secretKeyRef:
+      name: telegram-secret
+      key: TOKEN
+      
+podAnnotations: {}
+podLabels: {}
+podSecurityContext: {}
+securityContext: {}

@@ -2,3 +2,7 @@ bot
 !cmd/*
 .vscode
 scripts/.env
+!bot/
+.env
+secret.yaml
+data/

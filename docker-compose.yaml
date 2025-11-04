@@ -8,5 +8,25 @@ services:
       FAFBOT_PGSQL_CONNECTION: ${FAFBOT_PGSQL_CONNECTION} 
       #"postgresql://database:5432?user=postgres&password=11111&sslmode=disable"
       TELEGRAM_APITOKEN: ${TOKEN}
-    labels:
-      - "com.centurylinklabs.watchtower.enable=true"
+    depends_on:
+      - database
+    command: >
+      sh -c "
+        sleep 2 && /app/bot
+      "
+  database:
+    image: postgres
+    container_name: database-faf-bot
+    restart: unless-stopped
+    volumes:
+      - ${PGSQL_DATA}:/var/lib/postgresql/data
+      #- /home/dani/data-test:/var/lib/postgresql/data
+    environment:
+      POSTGRES_PASSWORD: ${PGSQL_PASSWORD}
+
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "postgres"]
+      timeout: 5s
+      retries: 10
+    ports:
+      - "5432:5432"

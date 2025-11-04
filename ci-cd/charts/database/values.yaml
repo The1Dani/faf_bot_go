@@ -1,0 +1,35 @@
+replicaCount: 1
+
+image:
+  repository: postgres
+  tag: "17"
+  pullPolicy: IfNotPresent
+
+postgres:
+  username: postgres
+  password: "11111"
+  database: postgres
+  dataPath: /var/lib/postgresql/data
+
+  hbaConfRules:
+    # Example rules:
+    - host all all 10.64.0.0/24 trust
+
+persistence:
+  enabled: true
+  size: 1Gi
+  storageClass: local-path
+
+service:
+  type: ClusterIP
+  port: 5432
+  # externalIPs: [ "10.64.0.12" ]
+
+serviceAccount:
+  create: true
+  name: ""
+
+podAnnotations: {}
+podLabels: {}
+podSecurityContext: {}
+securityContext: {}

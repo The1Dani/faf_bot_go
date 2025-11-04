@@ -1,17 +1,2 @@
 services:
-  database:
-    image: postgres
-    container_name: database
-    restart: unless-stopped
-    volumes:
-      - ${PGSQL_DATA}:/var/lib/postgresql/data:Z
-      #- /home/dani/data-test:/var/lib/postgresql/data
-    environment:
-      POSTGRES_PASSWORD: ${PGSQL_PASSWORD}
-
-    healthcheck:
-      test: ["CMD", "pg_isready", "-U", "postgres"]
-      timeout: 5s
-      retries: 10
-    ports:
-      - "5432:5432"
+  
